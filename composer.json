@@ -1,0 +1,23 @@
+{
+    "name": "marcoazn89/BooBoo",
+    "license": "MIT",
+    "description": "A framework to handle your production boo-boo'ss",
+    "keywords": ["library", "error", "handling", "exception", "BooBoo"],
+    "homepage": "https://github.com/marcoazn89/BooBoo",
+    "authors": [
+        {
+            "name": "Marco A. Chang",
+            "homepage": "https://github.com/marcoazn89",
+            "role": "Software Engineer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BooBoo\\": "",
+            "HTTP\\":"HTTP/"
+        }
+    }
+}
