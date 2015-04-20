@@ -2,11 +2,11 @@
 	<head>
 		<title>BooBoo - 500</title>
 <link href='https://www.dropbox.com/static/css/error.css' rel='stylesheet' type='text/css'>
-<link rel='shortcut icon' href='booboo.png'>
+<link rel='shortcut icon' href='https://github.com/marcoazn89/BooBoo/blob/master/templates/defaultErrors/booboo.png?raw=true'>
 </head>
 <body>
 <div class='figure'>
-<img src='booboo.png' width='300' alt='Error: 500'>
+<img src='https://github.com/marcoazn89/BooBoo/blob/master/templates/defaultErrors/booboo.png?raw=true' width='300' alt='Error: 500'>
 </div>
 <div id='errorbox'>
 <h1>Error (500)</h1>

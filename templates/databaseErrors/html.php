@@ -7,11 +7,11 @@ $status = Status::getInstance();
 	<head>
 		<title>BooBoo - <?php echo $status->code; ?></title>
 <link href='https://www.dropbox.com/static/css/error.css' rel='stylesheet' type='text/css'>
-<link rel='shortcut icon' href='booboo.png'>
+<link rel='shortcut icon' href='https://github.com/marcoazn89/BooBoo/blob/master/templates/databaseErrors/booboo.png?raw=true'>
 </head>
 <body>
 <div class='figure'>
-<img src='booboo.png' width='300' alt=<?php echo "'Error ".$status->code."'"; ?>>
+<img src='https://github.com/marcoazn89/BooBoo/blob/master/templates/databaseErrors/booboo.png?raw=true' width='300' alt=<?php echo "'Error ".$status->code."'"; ?>>
 </div>
 <div id='errorbox'>
 <h1>Error (<?php echo $status->code; ?>)</h1>
