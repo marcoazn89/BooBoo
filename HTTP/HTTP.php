@@ -18,19 +18,23 @@ class HTTP {
 
 	public static function status($code, $init = false) {
 		if($init) {
-			return new Status($code, $init);
+			Status::getInstance()->set($code, $init);
 		}
 		else {
-			array_push(self::$headers, new Status($code, $init));
+			$status = Status::getInstance();
+			$status->set($code, $init);
+			self::$headers['status'] = $status;
 		}
 	}
 
 	public static function contentType($contentType, $init = false) {
 		if($init) {
-			return new ContentType($contentType, $init);
+			ContentType::getInstance()->set($contentType, $init);
 		}
 		else {
-			array_push(self::$headers, new ContentType($contentType, $init));
+			$content = ContentType::getInstance();
+			$content->set($contentType, $init);
+			self::$headers['type'] = $content;
 		}
 	}
 
@@ -70,28 +74,34 @@ class HTTP {
 
 	public static function language($language, $init = false) {
 		if($init) {
-			return new Language($language, $init);
+			Language::getInstance()->set($language, $init);
 		}
 		else {
-			array_push(self::$headers, new Language($language, $init));
+			$lang = Language::getInstance();
+			$lang->set($language, $init);
+			self::$headers['language'] = $lang;
 		}
 	}
 
-	public static function authenticate($type = 'basic', Array $other = null, $init = false) {
+	public static function authenticate($auth = array(), $init = false) {
 		if($init) {
-			return new WWWAuthenticate($type, $init, $other);
+			WWWAuthenticate::getInstance()->set($auth, $init);
 		}
 		else {
-			array_push(self::$headers, new WWWAuthenticate($type, $other, $init));
+			$authenticate = WWWAuthenticate::getInstance();
+			$authenticate->set($auth, $init);
+			self::$headers['authenticate'] = $authenticate;
 		}
 	}
 
-	public static function cache(CacheControl $cache, $init = false) {
+	public static function cache($cache = null, $init = false) {
 		if($init) {
-			return $cache->sendHeader();
+			CacheControl::getInstance()->set($cache, $init);
 		}
 		else {
-			array_push(self::$headers, $cache);
+			$cache = CacheControl::getInstance();
+			$cache->set($cache, $init);
+			self::$headers['cache'] = $cache;
 		}
 	}
 
@@ -100,12 +110,12 @@ class HTTP {
 	}
 
 	public static function sendResponse() {
-		if( ! empty(self::$body)) {
-			echo self::$body;
+		foreach(self::$headers as $k => $header) {
+			$header->sendHeader();
 		}
 
-		foreach(self::$headers as $header) {
-			$header->sendHeader();
+		if( ! empty(self::$body)) {
+			echo self::$body;
 		}
 	}
 }

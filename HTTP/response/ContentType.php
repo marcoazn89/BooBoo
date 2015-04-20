@@ -5,7 +5,7 @@ require_once('HttpHeader.php');
 
 use HTTP\response\HTTPHeader;
 
-class ContentType implements HTTPHeader {
+class ContentType extends HTTPHeader {
 
 	const ADOBE_SHOCKWAVE = 'application/x-director';
 	const ADOBE_FLASH = 'application/x-shockwave-flash';
@@ -49,32 +49,14 @@ class ContentType implements HTTPHeader {
 	const ZIP_7 = 'application/x-7z-compressed';
 
 	public $content;
-	public static $instance = null;
 
-	public function __construct($content, $send = false) {
+	public function set($content, $send = false) {
 		$this->content = $content;
 		
+		$this->headerString = "Content-Type: {$this->content}";
+
 		if($send) {
 			$this->sendHeader();
 		}
-
-		self::$instance = $this;
-	}
-
-	public static function getInstance() {
-		if(is_null(self::$instance)) {
-			return false;
-		}
-		else {
-			return self::$instance;
-		}
-	}
-
-	public function getContent() {
-		return $this->content;
-	}
-
-	public function sendHeader() {
-		return header("Content-Type: {$this->content}");
 	}
 }

@@ -6,7 +6,7 @@ require_once('HttpHeader.php');
 use HTTP\response\HTTPHeader;
 use Exception;
 
-class Status implements HTTPHeader {
+class Status extends HTTPHeader {
 
 	public $status = array(
 		200	=> 'OK',
@@ -54,39 +54,25 @@ class Status implements HTTPHeader {
 
 	public $code;
 	public $message;
-	public static $instance = null;
 
-	public function __construct($statusCode = 200, $send = false) {
+	public function set($statusCode = 200, $send = false) {
 		if(array_key_exists($statusCode, $this->status)) {
 			$this->code = $statusCode;
+			$this->message = $this->status[$statusCode];
 		}
 		else {
 			$e = new Exception();
 			error_log("Status Code {$statusCode} is not valid, defaulting to 500. Stack Trace: {$e->getTraceAsString()}");
 			$this->code = 500;
+			$this->message = $this->status[$this->code];
+			$this->sendHeader();
+			exit(1);
 		}
 
-		self::$instance = $this;
+		$this->headerString = "{$_SERVER['SERVER_PROTOCOL']} {$this->code} {$this->message}";
 
 		if($send) {
 			$this->sendHeader();
 		}
-	}
-
-	public static function getInstance() {
-		if(is_null(self::$instance)) {
-			return new Status();
-		}
-		else {
-			return self::$instance;
-		}
-	}
-
-	public function setMessage($statusCode) {
-		$this->message = $this->status[$statusCode];
-	}
-
-	public function sendHeader() {
-		return header("{$_SERVER['SERVER_PROTOCOL']} {$this->code} {$this->message}");
 	}
 }

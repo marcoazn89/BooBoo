@@ -4,7 +4,7 @@ namespace HTTP\response;
 require_once('HttpHeader.php');
 
 use HTTP\response\HTTPHeader;
-class Language implements HTTPHeader {
+class Language extends HTTPHeader {
 
 	const ARABIC = 'ar';
 	const ARMENIAN = 'hy';
@@ -30,16 +30,14 @@ class Language implements HTTPHeader {
 	const VIETNAMESE = 'vi';
 
 	public $language;
-	
-	public function __construct($language, $send = false) {
+
+	public function set($language, $send = false) {
 		$this->language = $language;
+
+		$this->headerString = "Content-Language: {$this->language}";
 		
 		if($send) {
 			$this->sendHeader();
-		}
-	}
-
-	public function sendHeader() {
-		return header("Content-Language: {$this->language}");
+		}	
 	}
 }

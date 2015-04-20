@@ -11,8 +11,13 @@
             "role": "Software Engineer"
         }
     ],
+    "repositories": [{
+        "type": "vcs",
+        "url": "https://github.com/marcoazn89/plankter"
+    }],
     "require": {
-        "php": ">=5.3.0"
+        "php": ">=5.3.0",
+        "marcoazn89/plankter": "dev-master"
     },
     "autoload": {
         "psr-4": {

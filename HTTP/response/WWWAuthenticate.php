@@ -5,29 +5,33 @@ require_once('HttpHeader.php');
 
 use HTTP\response\HTTPHeader;
 
-class WWWAuthenticate implements HTTPHeader {
+class WWWAuthenticate extends HTTPHeader {
 
-	public $authenticate;
+	public $auth = array();
+	public $type = 'Basic';
 	
-	public function __construct($type = 'basic', Array $other = null, $send = false) {
-		$this->authenticate = $type;
+	public function set($auth = array(), $send = false) {
+		$this->auth = $auth;
 
-		if( ! is_null($other)) {
-			$temp = array();
-			
-			foreach($other as $key => $val) {
-				array_push($temp, "{$key}={$val}");
-			}
+		$this->headerString = "WWW-Authenticate: {$this->type} ";
 
-			$this->authenticate .= ' '.implode(', ', $temp);
+		foreach($this->auth as $key => $val) {
+			$this->headerString .= "{$key}={$val},";
 		}
+
+		$this->headerString = rtrim($this->headerString, ",");
 
 		if($send) {
 			$this->sendHeader();
 		}
 	}
 
-	public function sendHeader() {
-		return header("WWW-Authenticate: {$this->authenticate}");
+	/**
+	 * Set the authentication type.
+	 * Default is Basic
+	 * @param String $type
+	 */
+	public function setType($type) {
+		$this->type = $type;
 	}
 }

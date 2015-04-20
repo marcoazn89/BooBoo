@@ -4,6 +4,9 @@ namespace HTTP\request;
 abstract class RequestHeader {
 	protected static $content = array();
 
+	abstract public static function getDefault();
+	abstract public static function getHeader();
+	
 	public static function setContent($overrideHeader = false, Array $content = null) {
 		if($overrideHeader) {
 			if(is_null($content)) {
@@ -17,8 +20,14 @@ abstract class RequestHeader {
 		}
 	}
 
-	abstract public static function getContent();
-	abstract public static function getDefault();
+	public static function getContent() {
+		if(count(static::$content) == 0) {
+			return static::getHeader();
+		}
+		else {
+			return static::$content;
+		}
+	}
 
 	protected static function contentPriority($string) {
 		//sample: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8" 
@@ -37,9 +46,9 @@ abstract class RequestHeader {
 				}
 
 				array_push($content, $pieces[0]);
-			}	
-		}		
+			}
 
-		return $content;
+			return $content;
+		}
 	}
 }

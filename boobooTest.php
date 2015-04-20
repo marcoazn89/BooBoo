@@ -8,8 +8,8 @@ use BooBoo\MyBooBoos\DatabaseError;
 
 HTTP::contentType(ContentType::XML);
 BooBoo::setUp();
-throw new BooBoo(new DatabaseError());
-//throw new Exception("Error Processing Request", 1);
+//throw new BooBoo(new DatabaseError(500));
+throw new Exception("Error Processing Request", 1);
 
 
 //$a++;

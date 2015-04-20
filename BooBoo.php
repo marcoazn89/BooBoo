@@ -29,7 +29,14 @@ class BooBoo extends Exception {
 		E_STRICT			=>	'Runtime Notice'
 	);
 
+	/**
+	 * Constructor
+	 * @param MyBooBoos $booboo          A MyBooBoo object
+	 * @param boolean   $isCatched       If the error is catched, set this to true
+	 * @param boolean   $disableCatchLog If it is catched and don't want to log the error
+	 */
 	public function __construct(MyBooBoos $booboo, $isCatched = false, $disableCatchLog = false) {
+		//if it is catched but flag not set to true, the body will have the error message
 		parent::__construct($booboo->getDescription());
 
 		if($isCatched) {
@@ -104,7 +111,6 @@ class BooBoo extends Exception {
 	final public static function shutdownFunction() {
 		$last_error = error_get_last();
 		
-
 		if(isset($last_error) && ($last_error['type'] &
 		(E_ERROR | E_PARSE | E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_COMPILE_WARNING))) {
 			self::errorHandler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
@@ -112,6 +118,7 @@ class BooBoo extends Exception {
 	}
 
 	final public static function errorHandler($severity, $message, $filepath, $line) {
+		var_dump($severity, $message);
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR) & $severity) === $severity);
 		
 		if ($is_error) {

@@ -8,6 +8,7 @@ use HTTP\response\Language;
 use HTTP\response\WWWAuthenticate;
 use HTTP\response\CacheControl;
 use HTTP\request\AcceptType;
+use HTTP\request\AcceptLanguage;
 use HTTP\support\TypeSupport;
 use HTTP\support\ContentSupport;
 use HTTP\support\LanguageSupport;
@@ -16,4 +17,15 @@ use BooBoo\BooBoo;
 use BooBoo\MyBooBoos\DatabaseError;
 
 BooBoo::setUp();
-throw new BooBoo(new DatabaseError(420));
+
+try {
+	throw new BooBoo(new DatabaseError(), true);
+}
+catch(BooBoo $e) {
+
+}
+
+HTTP::status(202);
+HTTP::sendResponse();
+
+echo "ksdkdslklkfslk";

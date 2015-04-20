@@ -4,7 +4,7 @@ namespace HTTP\response;
 require_once('HttpHeader.php');
 
 use HTTP\response\HTTPHeader;
-class CacheControl implements HTTPHeader {
+class CacheControl extends HTTPHeader {
 
 	const CACHE_PUBLIC = 'public';
 	const CACHE_PRIVATE = 'private';
@@ -27,15 +27,20 @@ class CacheControl implements HTTPHeader {
 		);
 
 	public $cacheString = '';
-	
-	public function __construct($send = false) {
+
+	public function set($cache = null, $send = false) {
+		$this->cache = is_null($cache) ? $this->cache : $cache;
+		$this->setCacheString();
+
+		$this->headerString = "Cache-Control:{$this->cacheString}";
+
 		if($send) {
 			$this->sendHeader();
 		}
 	}
 
 	public function setExpirationType($type = self::MAX_AGE, $duration = 3600) {
-		$this->cache['expiration'] = "max-age={$duration}";
+		$this->cache['expiration'] = "{$type}={$duration}";
 	}
 
 	public function setMode($mode = self::CACHE_PUBLIC) {
@@ -60,10 +65,5 @@ class CacheControl implements HTTPHeader {
 		}
 
 		$this->cacheString .= ' '.implode(', ', $temp);
-	}
-
-	public function sendHeader() {
-		$this->setCacheString();
-		return header("Cache-Control:{$this->cacheString}");
 	}
 }
