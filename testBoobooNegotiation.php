@@ -18,14 +18,16 @@ use BooBoo\MyBooBoos\DatabaseError;
 
 BooBoo::setUp();
 
+throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 404);
+
 try {
-	throw new BooBoo(new DatabaseError(), true);
+	throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 300);
 }
-catch(BooBoo $e) {
-
+catch(BooBoo $poo) {
+	$poo->log(false);
 }
-
-HTTP::status(202);
-HTTP::sendResponse();
 
 echo "ksdkdslklkfslk";
+HTTP::sendResponse();
+
+

@@ -1,11 +1,13 @@
 <?php
 namespace BooBoo\MyBooBoos;
 
-require_once('MyBooBoos.php');
-
 use BooBoo\MyBooBoos\MyBooBoos;
 
 class DatabaseError extends MyBooBoos {
+
+	const NOT_AVAILABLE = 'Unable to connect to database';
+	const BAD_QUERY = 'Query is not formatted properly';
+
 	protected function getTEXT() {
 		return $this->getContents('/templates/DatabaseErrors/text.php');
 	}
@@ -22,7 +24,7 @@ class DatabaseError extends MyBooBoos {
 		return $this->getContents('/templates/DatabaseErrors/json.php');
 	}
 
-	public function getDescription() {
-		return "Internal Server Error";
+	public function getTag() {
+		return "DatabaseError";
 	}
 }

@@ -1,9 +1,6 @@
 <?php
 namespace BooBoo;
 
-require_once('HTTP/HTTP.php');
-require_once('BooBooLogger.php');
-
 use HTTP\HTTP;
 use BooBoo\BooBooLogger;
 use Exception;
@@ -12,8 +9,8 @@ use BooBoo\MyBooBoos\MyBooBoos;
 
 class BooBoo extends Exception {
 	
+	public static $booboo;
 	public static $logger;
-	public static $boobooException;
 	public static $levels = array(
 		E_ERROR				=>	'Fatal Error',
 		E_WARNING			=>	'Warning',
@@ -32,24 +29,21 @@ class BooBoo extends Exception {
 	/**
 	 * Constructor
 	 * @param MyBooBoos $booboo          A MyBooBoo object
-	 * @param boolean   $isCatched       If the error is catched, set this to true
-	 * @param boolean   $disableCatchLog If it is catched and don't want to log the error
+	 * @param boolean|null   $statusCode      HTTP status code
 	 */
-	public function __construct(MyBooBoos $booboo, $isCatched = false, $disableCatchLog = false) {
-		//if it is catched but flag not set to true, the body will have the error message
-		parent::__construct($booboo->getDescription());
+	public function __construct(MyBooBoos $booboo, $statusCode = null) {
+		parent::__construct($booboo->getMessage());
+		self::$booboo = $booboo;
 
-		if($isCatched) {
-			if( ! $disableCatchLog) {
-				self::$logger->log("{$booboo}: {$booboo->getDescription()} in {$this->getFile()} at line {$this->getLine()}. Stack trace: {$this->getTraceAsString()}");
-			}
-		}
-		else {
-			self::$logger->log("{$booboo}: {$booboo->getDescription()} in {$this->getFile()} at line {$this->getLine()}. Stack trace: {$this->getTraceAsString()}");
-			HTTP::body($booboo->printErrorMessage(ContentType::getInstance()->getContent()));
+		if( ! is_null($statusCode)) {
+			HTTP::status($statusCode);
 		}
 	}
 
+	/**
+	 * Set up BooBoo.
+	 * @param BooBooLog|null $logger [A BooBooLog to replace the default logger]
+	 */
 	final public static function setUp(BooBooLog $logger = null) {
 		ini_set('display_errors', 0);
 
@@ -74,12 +68,27 @@ class BooBoo extends Exception {
 		}
 	}
 
+	/**
+	 * Get the contents of an error template
+	 * @param  String $file [Path of the file]
+	 * @param  mixed $data [Data to be used in the file. This may get deprecated]
+	 * @return file
+	 */
 	protected static function getContents($file, $data = null) {
 		ob_start();
 		include($file);
 		$buffer = ob_get_contents();
 		ob_end_clean();
 		return $buffer;
+	}
+
+	final public function log($includeTrace = true) {
+		if($includeTrace) {
+			self::$logger->log("{self::booboo}: {$this->getMessage()} in {$this->getFile()} at line {$this->getLine()}. Stack trace: {$this->getTraceAsString()}");
+		}
+		else {
+			self::$logger->log("{self::booboo}: {$this->getMessage()} in {$this->getFile()} at line {$this->getLine()}.");
+		}
 	}
 
 	final public static function exceptionHandler($exception) {
@@ -104,6 +113,8 @@ class BooBoo extends Exception {
 			HTTP::sendResponse();
 		}
 		else {
+			self::$logger->log(self::$booboo.": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+			HTTP::body(self::$booboo->printErrorMessage(ContentType::getInstance()->content));
 			HTTP::sendResponse();
 		}
 	}
@@ -118,11 +129,11 @@ class BooBoo extends Exception {
 	}
 
 	final public static function errorHandler($severity, $message, $filepath, $line) {
-		var_dump($severity, $message);
+		//var_dump($message, $filepath, $line);
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR) & $severity) === $severity);
 		
 		if ($is_error) {
-			switch(ContentType::getInstance()->getContent()) {
+			switch(ContentType::getInstance()->content) {
 				case ContentType::TEXT:
 					HTTP::body(self::getContents('templates/defaultErrors/text.php'));
 					break;
