@@ -31,13 +31,11 @@ class BooBoo extends Exception {
 	 * @param MyBooBoos $booboo          A MyBooBoo object
 	 * @param boolean|null   $statusCode      HTTP status code
 	 */
-	public function __construct(MyBooBoos $booboo, $statusCode = null) {
+	public function __construct(MyBooBoos $booboo, $statusCode = 200) {
 		parent::__construct($booboo->getMessage());
 		self::$booboo = $booboo;
 
-		if( ! is_null($statusCode)) {
-			HTTP::status($statusCode);
-		}
+		HTTP::status($statusCode);
 	}
 
 	/**
@@ -61,7 +59,7 @@ class BooBoo extends Exception {
 		HTTP::contentType(HTTP::negotiateContentType());
 
 		if(is_null($logger)) {
-			self::$logger = new BooBooLogger();
+			self::$logger = BooBooLogger::getInstance();
 		}
 		else {
 			self::$logger = $logger;
