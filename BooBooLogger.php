@@ -7,24 +7,21 @@ use BooBoo\BooBooLog;
 
 class BooBooLogger implements BooBooLog {
 
-	public static $instance = null;
-	
-	public function __construct() {
-		if( ! is_null(self::$instance)) {
-			return self::$instance;
-		}
-		else {
-			self::$instance = $this;
-		}
-	}
+	//Singleton Pattern: Can't create an instance
+	protected function __construct() {}
+	//Singleton Pattern: Can't clone
+	protected function __clone() {}
+	//Singleton Pattern: Can't deserialize
+	protected function __wakeup() {}
 
-	public static function getInstance() {
-		if(is_null(self::$instance)) {
-			return new BooBooLogger();
+	final public static function getInstance() {
+		static $instance = null;
+
+		if(is_null($instance)) {
+			$instance = new static();
 		}
-		else {
-			return $instance;
-		}
+
+		return $instance;
 	}
 
 	public function log($message) {
