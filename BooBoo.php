@@ -80,15 +80,22 @@ class BooBoo extends Exception {
 		return $buffer;
 	}
 
+	/**
+	 * Log the error. Typically called on the catch part of a try/catch
+	 * @param  boolean $includeTrace [Include the strack trace or not]
+	 */
 	final public function log($includeTrace = true) {
 		if($includeTrace) {
-			self::$logger->log("{self::booboo}: {$this->getMessage()} in {$this->getFile()} at line {$this->getLine()}. Stack trace: {$this->getTraceAsString()}");
+			self::$logger->log(self::booboo.": {$this->getMessage()} in {$this->getFile()} at line {$this->getLine()}. Stack trace: {$this->getTraceAsString()}");
 		}
 		else {
-			self::$logger->log("{self::booboo}: {$this->getMessage()} in {$this->getFile()} at line {$this->getLine()}.");
+			self::$logger->log(self::booboo.": {$this->getMessage()} in {$this->getFile()} at line {$this->getLine()}.");
 		}
 	}
 
+	/**
+	 * Override the exception handler
+	 */
 	final public static function exceptionHandler($exception) {
 		if(get_class($exception) !== __CLASS__) {
 			self::$logger->log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
@@ -117,6 +124,9 @@ class BooBoo extends Exception {
 		}
 	}
 
+	/**
+	 * Override the shut down function
+	 */
 	final public static function shutdownFunction() {
 		$last_error = error_get_last();
 		
@@ -126,6 +136,9 @@ class BooBoo extends Exception {
 		}
 	}
 
+	/**
+	 * Override the errorHandler
+	 */
 	final public static function errorHandler($severity, $message, $filepath, $line) {
 		//var_dump($message, $filepath, $line);
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR) & $severity) === $severity);

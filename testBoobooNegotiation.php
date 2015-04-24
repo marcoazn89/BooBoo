@@ -17,7 +17,6 @@ use BooBoo\BooBoo;
 use BooBoo\MyBooBoos\DatabaseError;
 
 BooBoo::setUp();
-//HTTP::contentType(ContentType::TEXT);
 
 throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE),500);
 
