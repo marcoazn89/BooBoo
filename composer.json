@@ -1,8 +1,8 @@
 {
-    "name": "marcoazn89/BooBoo",
+    "name": "marcoazn89/booboo",
     "license": "MIT",
-    "description": "A framework to handle your production boo-boo'ss",
-    "keywords": ["library", "error", "handling", "exception", "BooBoo"],
+    "description": "A framework to handle your production boo-boo's",
+    "keywords": ["library", "error", "handling", "exception", "booboo", "php"],
     "homepage": "https://github.com/marcoazn89/BooBoo",
     "authors": [
         {
@@ -11,18 +11,13 @@
             "role": "Software Engineer"
         }
     ],
-    "repositories": [{
-        "type": "vcs",
-        "url": "https://github.com/marcoazn89/plankter"
-    }],
     "require": {
         "php": ">=5.3.0",
-        "marcoazn89/plankter": "dev-master"
+        "marcoazn89/http-wrapper": "dev-dev"
     },
     "autoload": {
         "psr-4": {
-            "BooBoo\\": "",
-            "HTTP\\":"HTTP/"
+            "BooBoo\\": "src/"
         }
     }
 }
