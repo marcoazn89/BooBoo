@@ -56,7 +56,7 @@ class BooBoo extends \Exception {
 		register_shutdown_function(array('BooBoo\BooBoo','shutdownFunction'));
 
 		self::$httpHandler = new Response();
-		self::$httpHandler = self::$httpHandler->withMime(self::$httpHandler->negotiateContentType());
+		self::$httpHandler = self::$httpHandler->withType(self::$httpHandler->negotiateContentType());
 
 		if(is_null($logger)) {
 			self::$logger = BooBooLogger::getInstance();
