@@ -18,9 +18,10 @@ use BooBoo\MyBooBoos\DatabaseError;
 
 BooBoo::setUp();
 
+HTTP::language(Language::ARABIC);
 throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE),500);
 
-try {
+/*try {
 	throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 300);
 }
 catch(BooBoo $poo) {
@@ -29,5 +30,5 @@ catch(BooBoo $poo) {
 
 echo "ksdkdslklkfslk";
 HTTP::sendResponse();
-
+*/
 

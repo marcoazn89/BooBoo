@@ -8,7 +8,7 @@ use HTTP\response\ContentType;
 use BooBoo\MyBooBoos\MyBooBoos;
 
 class BooBoo extends Exception {
-	
+
 	public static $booboo;
 	public static $logger;
 	public static $levels = array(
@@ -99,7 +99,7 @@ class BooBoo extends Exception {
 	final public static function exceptionHandler($exception) {
 		if(get_class($exception) !== __CLASS__) {
 			self::$logger->log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
-			
+
 			switch(ContentType::getInstance()->getContent()) {
 				case ContentType::TEXT:
 					HTTP::body(self::getContents('templates/defaultErrors/text.php'));
@@ -129,7 +129,7 @@ class BooBoo extends Exception {
 	 */
 	final public static function shutdownFunction() {
 		$last_error = error_get_last();
-		
+
 		if(isset($last_error) && ($last_error['type'] &
 		(E_ERROR | E_PARSE | E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_COMPILE_WARNING))) {
 			self::errorHandler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
@@ -142,7 +142,7 @@ class BooBoo extends Exception {
 	final public static function errorHandler($severity, $message, $filepath, $line) {
 		//var_dump($message, $filepath, $line);
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR) & $severity) === $severity);
-		
+
 		if ($is_error) {
 			switch(ContentType::getInstance()->content) {
 				case ContentType::TEXT:
@@ -163,7 +163,7 @@ class BooBoo extends Exception {
 		if (($severity & error_reporting()) !== $severity) {
 			return;
 		}
-		
+
 		$level = self::$levels[$severity];
 
 		if( ! in_array($severity, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR), true)) {

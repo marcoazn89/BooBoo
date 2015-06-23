@@ -55,8 +55,7 @@ class BooBoo extends \Exception {
 		set_error_handler(array('BooBoo\BooBoo','errorHandler'));
 		register_shutdown_function(array('BooBoo\BooBoo','shutdownFunction'));
 
-		self::$httpHandler = new Response();
-		self::$httpHandler = self::$httpHandler->withType(self::$httpHandler->negotiateContentType());
+		self::$httpHandler = (new Response())->withTypeNegotiation();
 
 		if(is_null($logger)) {
 			self::$logger = BooBooLogger::getInstance();
@@ -102,16 +101,16 @@ class BooBoo extends \Exception {
 
 			switch(ContentType::getInstance()->getString()) {
 				case ContentType::TEXT:
-					self::$httpHandler->write(self::getContents('templates/defaultErrors/text.php'));
+					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/text.php'));
 					break;
 				case ContentType::HTML:
-					self::$httpHandler->write(self::getContents('templates/defaultErrors/html.php'));
+					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/html.php'));
 					break;
 				case ContentType::XML:
-					self::$httpHandler->write(self::getContents('templates/defaultErrors/xml.php'));
+					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/xml.php'));
 					break;
 				case ContentType::JSON:
-					self::$httpHandler->write(self::getContents('templates/defaultErrors/json.php'));
+					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/json.php'));
 					break;
 			}
 			self::$httpHandler->withStatus(Status::CODE500);
@@ -119,8 +118,7 @@ class BooBoo extends \Exception {
 		}
 		else {
 			self::$logger->log(self::$booboo.": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
-			self::$httpHandler->write(self::$booboo->printErrorMessage(ContentType::getInstance()->getString()));
-			self::$httpHandler->send();
+			self::$httpHandler->overwrite(self::$booboo->printErrorMessage(ContentType::getInstance()->getString()))->send();
 		}
 	}
 
@@ -146,16 +144,16 @@ class BooBoo extends \Exception {
 		if ($is_error) {
 			switch(ContentType::getInstance()->getString()) {
 				case ContentType::TEXT:
-					self::$httpHandler->write(self::getContents('templates/defaultErrors/text.php'));
+					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/text.php'));
 					break;
 				case ContentType::HTML:
-					self::$httpHandler->write(self::getContents('templates/defaultErrors/html.php'));
+					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/html.php'));
 					break;
 				case ContentType::XML:
-					self::$httpHandler->write(self::getContents('templates/defaultErrors/xml.php'));
+					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/xml.php'));
 					break;
 				case ContentType::JSON:
-					self::$httpHandler->write(self::getContents('templates/defaultErrors/json.php'));
+					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/json.php'));
 					break;
 			}
 		}
@@ -171,8 +169,7 @@ class BooBoo extends \Exception {
 		}
 
 		if($is_error) {
-			self::$httpHandler = self::$httpHandler->withStatus(Status::CODE500);
-			self::$httpHandler->send();
+			self::$httpHandler->withStatus(Status::CODE500)->send();
 			exit(1);
 		}
 	}

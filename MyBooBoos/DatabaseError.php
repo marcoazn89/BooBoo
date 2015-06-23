@@ -1,9 +1,7 @@
 <?php
 namespace BooBoo\MyBooBoos;
 
-use BooBoo\MyBooBoos\MyBooBoos;
-
-class DatabaseError extends MyBooBoos {
+class DatabaseError extends Error {
 
 	const NOT_AVAILABLE = 'Unable to connect to database';
 	const BAD_QUERY = 'Query is not formatted properly';
