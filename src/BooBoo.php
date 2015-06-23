@@ -7,9 +7,28 @@ use \HTTP\Response\ContentType;
 
 class BooBoo extends \Exception {
 
+	/**
+	 * The Error object
+	 * @var MyBooBoos\Error
+	 */
 	public static $booboo;
+
+	/**
+	 * The logger object
+	 * @var BooBoo\BooBooLog
+	 */
 	public static $logger;
+
+	/**
+	 * HTTP response handler
+	 * @var HTTP\Response
+	 */
 	public static $httpHandler;
+
+	/**
+	 * Error levels
+	 * @var array
+	 */
 	public static $levels = array(
 		E_ERROR				=>	'Fatal Error',
 		E_WARNING			=>	'Warning',
@@ -24,6 +43,13 @@ class BooBoo extends \Exception {
 		E_USER_NOTICE		=>	'User Notice',
 		E_STRICT			=>	'Runtime Notice'
 	);
+
+	protected static $defaultErrorPath = [
+		'text'	=>	__DIR__.'/templates/defaultErrors/text.php',
+		'html'	=>	__DIR__.'/templates/defaultErrors/html.php',
+		'json'	=>	__DIR__.'/templates/defaultErrors/json.php',
+		'xml'	=>	__DIR__.'/templates/defaultErrors/xml.php'
+	];
 
 	/**
 	 * Constructor
@@ -66,6 +92,16 @@ class BooBoo extends \Exception {
 	}
 
 	/**
+	 * Set a new defaultErrorPath
+	 *
+	 * @param	 string $error 	The error path to be overwritten
+	 * @param  string $path   A path to a folder containing default errors for BooBoo
+	 */
+	public static function defaultErrorPath($error, $path) {
+		self::$defaultErrorPath[$error] = $path;
+	}
+
+	/**
 	 * Get the contents of an error template
 	 * @param  String $file [Path of the file]
 	 * @param  mixed $data [Data to be used in the file. This may get deprecated]
@@ -99,20 +135,26 @@ class BooBoo extends \Exception {
 		if(get_class($exception) !== __CLASS__) {
 			self::$logger->log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 
-			switch(ContentType::getInstance()->getString()) {
+			$format = ContentType::getInstance()->getString();
+
+			switch($format) {
 				case ContentType::TEXT:
-					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/text.php'));
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
 					break;
 				case ContentType::HTML:
-					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/html.php'));
-					break;
-				case ContentType::XML:
-					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/xml.php'));
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['html']));
 					break;
 				case ContentType::JSON:
-					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/json.php'));
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['json']));
 					break;
+				case ContentType::XML:
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['xml']));
+					break;
+				default:
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
+					self::$logger->log("Error: Can't find template in the format compatible for {$format}. Defaulting to plain text");
 			}
+
 			self::$httpHandler->withStatus(Status::CODE500);
 			self::$httpHandler->send();
 		}
@@ -142,19 +184,24 @@ class BooBoo extends \Exception {
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR) & $severity) === $severity);
 
 		if ($is_error) {
-			switch(ContentType::getInstance()->getString()) {
+			$format = ContentType::getInstance()->getString();
+
+			switch($format) {
 				case ContentType::TEXT:
-					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/text.php'));
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
 					break;
 				case ContentType::HTML:
-					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/html.php'));
-					break;
-				case ContentType::XML:
-					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/xml.php'));
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['html']));
 					break;
 				case ContentType::JSON:
-					self::$httpHandler->overwrite(self::getContents('templates/defaultErrors/json.php'));
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['json']));
 					break;
+				case ContentType::XML:
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['xml']));
+					break;
+				default:
+					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
+					self::$logger->log("Error: Can't find template in the format compatible for {$format}. Defaulting to plain text");
 			}
 		}
 
@@ -169,7 +216,7 @@ class BooBoo extends \Exception {
 		}
 
 		if($is_error) {
-			self::$httpHandler->withStatus(Status::CODE500)->send();
+			self::$httpHandler->withStatus(500)->send();
 			exit(1);
 		}
 	}
