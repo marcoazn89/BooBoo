@@ -3,7 +3,7 @@
     "license": "MIT",
     "description": "A framework to handle your production boo-boo's",
     "keywords": ["library", "error", "handling", "exception", "booboo", "php"],
-    "homepage": "https://github.com/marcoazn89/BooBoo",
+    "homepage": "https://github.com/marcoazn89/booboo",
     "authors": [
         {
             "name": "Marco A. Chang",
