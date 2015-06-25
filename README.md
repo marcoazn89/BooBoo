@@ -27,7 +27,6 @@ Make it fail
 require '../vendor/autoload.php';
 
 use BooBoo\BooBoo;
-use BooBoo\MyBooBoos\DatabaseError;
 
 BooBoo::setUp();
 
@@ -36,5 +35,4 @@ $random->error();
 ```
 
 ![BooBoo!](http://i.imgur.com/OGIQDiP.png?1)
-
-
+![BooBoo!](http://i.imgur.com/TXboLaP.png)
