@@ -40,9 +40,11 @@ $random->error();
 BooBoo pays attention to Accept headers
 ----------------------------------------
 Client requesting JSON
+
 ![BooBoo!](http://i.imgur.com/21kRZLp.png)
 
 Client requesting XML
+
 ![BooBoo!](http://i.imgur.com/yc0qwKp.png)
 
 Set your own errrors
