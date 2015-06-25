@@ -78,7 +78,6 @@ class DatabaseError extends Error {
 
 Throw a BooBoo
 ---------------
-Note the Accept header is now asking for xml
 ```php
 require '../vendor/autoload.php';
 
@@ -93,6 +92,7 @@ BooBoo::setUp();
 throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 400);
 ```
 ![BooBoo!](http://i.imgur.com/ZC9R9kM.png)
+Note the Accept header is now asking for xml
 ![BooBoo!](http://i.imgur.com/aIXL6Gr.png)
 
 Set limits on what you can support
