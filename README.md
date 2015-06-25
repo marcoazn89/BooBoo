@@ -95,6 +95,8 @@ throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 400);
 
 Note the Accept header is now asking for xml
 
+![BooBoo!](http://i.imgur.com/yc0qwKp.png)
+
 ![BooBoo!](http://i.imgur.com/aIXL6Gr.png)
 
 Set limits on what you can support
