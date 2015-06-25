@@ -39,7 +39,11 @@ $random->error();
 
 BooBoo pays attention to Accept headers
 ----------------------------------------
+Client requesting JSON
 ![BooBoo!](http://i.imgur.com/21kRZLp.png)
+
+Client requesting XML
+![BooBoo!](http://i.imgur.com/yc0qwKp.png)
 
 Set your own errrors
 -----------------------------
@@ -92,10 +96,6 @@ BooBoo::setUp();
 throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 400);
 ```
 ![BooBoo!](http://i.imgur.com/ZC9R9kM.png)
-
-Note the Accept header is now asking for xml
-
-![BooBoo!](http://i.imgur.com/yc0qwKp.png)
 
 ![BooBoo!](http://i.imgur.com/aIXL6Gr.png)
 
