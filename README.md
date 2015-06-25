@@ -43,8 +43,8 @@ BooBoo pays attention to Accept headers
 
 Set your own errrors
 -----------------------------
-It is suggested that you define constants for error message descriptions
-to keep things consistant
+It is suggested that you define constants for error message descriptions.
+to keep things consistant. Also, define your own error templates.
 ```php
 namespace BooBoo\MyBooBoos;
 
@@ -92,7 +92,7 @@ BooBoo::setUp();
 // 2- HTTP code
 throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 400);
 ```
-![BooBoo!](http://i.imgur.com/yc0qwKp.png)
+![BooBoo!](http://i.imgur.com/ZC9R9kM.png)
 ![BooBoo!](http://i.imgur.com/aIXL6Gr.png)
 
 Set limits on what you can support
