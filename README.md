@@ -98,7 +98,7 @@ throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 400);
 Set limits on what you can support
 -----------------------------------
 The order in which you add support matters! This will ignore any Accept
-headers that don't match the supported types. Learn more from [`http-wrapper`](https://github.com/marcoazn89/http-wrapper)
+headers that don't match the supported types. Learn more from [`http-wrapper`](https://github.com/marcoazn89/http-wrapper/tree/dev)
 ```php
 require '../vendor/autoload.php';
 
