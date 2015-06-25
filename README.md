@@ -93,3 +93,23 @@ BooBoo::setUp();
 throw new BooBoo(new DatabaseError(DatabaseError::NOT_AVAILABLE), 400);
 ```
 ![BooBoo!](http://i.imgur.com/yc0qwKp.png)
+![BooBoo!](http://i.imgur.com/aIXL6Gr.png)
+
+Set limits on what you can support
+-----------------------------------
+The order in which you add support matters! This will ignore any Accept
+headers that don't match the supported types. Learn more from [`http-wrapper`](https://github.com/marcoazn89/http-wrapper)
+```php
+require '../vendor/autoload.php';
+
+use BooBoo\BooBoo;
+
+\HTTP\Support\TypeSupport::addSupport([
+	\HTTP\Response\ContentType::HTML,
+	\HTTP\Response\ContentType::TEXT
+]);
+
+BooBoo::setUp();
+
+$random->error();
+```
