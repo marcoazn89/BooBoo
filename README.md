@@ -43,8 +43,8 @@ BooBoo pays attention to Accept headers
 
 Set your own errrors
 -----------------------------
-It is suggested that you define constants for error message descriptions.
-to keep things consistant. Also, define your own error templates.
+It is suggested that you define constants for error message descriptions
+to keep things consistant. Also, you can define your own error templates.
 ```php
 namespace BooBoo\MyBooBoos;
 
