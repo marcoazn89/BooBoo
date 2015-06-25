@@ -104,6 +104,7 @@ require '../vendor/autoload.php';
 
 use BooBoo\BooBoo;
 
+// Add supported types
 \HTTP\Support\TypeSupport::addSupport([
 	\HTTP\Response\ContentType::HTML,
 	\HTTP\Response\ContentType::TEXT
@@ -111,5 +112,8 @@ use BooBoo\BooBoo;
 
 BooBoo::setUp();
 
+// Assume the client sends a text Accept header, the response will
+// be in plain text because is the best match. If none match, the
+// response will be in HTML because it was the first one added
 $random->error();
 ```
