@@ -61,7 +61,13 @@ class BooBoo extends \Exception {
 		parent::__construct($booboo->getMessage());
 		self::$booboo = $booboo;
 
+		if(!isset(self::$httpHandler)) {
+			self::setUp();
+
+		}
+
 		self::$httpHandler = self::$httpHandler->withStatus($statusCode);
+
 	}
 
 	/**
