@@ -41,6 +41,7 @@ class BooBoo extends \Exception {
 		E_USER_ERROR		=>	'User Error',
 		E_USER_WARNING		=>	'User Warning',
 		E_USER_NOTICE		=>	'User Notice',
+		E_USER_DEPRECATED => 'User Deprecated',
 		E_STRICT			=>	'Runtime Notice'
 	);
 
@@ -67,7 +68,7 @@ class BooBoo extends \Exception {
 	 * Set up BooBoo.
 	 * @param BooBooLog|null $logger [A BooBooLog to replace the default logger]
 	 */
-	final public static function setUp(BooBooLog $logger = null) {
+	final public static function setUp(\Psr\Log\LoggerInterface $logger = null) {
 		ini_set('display_errors', 0);
 
 		if(version_compare(PHP_VERSION, '5.3', '>=')) {
@@ -84,7 +85,8 @@ class BooBoo extends \Exception {
 		self::$httpHandler = (new Response())->withTypeNegotiation();
 
 		if(is_null($logger)) {
-			self::$logger = BooBooLogger::getInstance();
+			self::$logger = new Monolog\Logger('test');
+			$log->pushHandler(new StreamHandler('path/to/your.log', Logger::WARNING));
 		}
 		else {
 			self::$logger = $logger;
