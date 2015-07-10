@@ -1,9 +1,9 @@
 <?php
-namespace BooBoo;
+namespace Exception;
 
 require_once('BooBooLog.php');
 
-use BooBoo\BooBooLog;
+use Exception\BooBooLog;
 
 class BooBooLogger implements BooBooLog {
 

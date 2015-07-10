@@ -1,5 +1,5 @@
 <?php
-namespace BooBoo\MyBooBoos;
+namespace MyBooBoos;
 
 class DatabaseError extends Error {
 

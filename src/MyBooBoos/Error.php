@@ -1,5 +1,5 @@
 <?php
-namespace BooBoo\MyBooBoos;
+namespace MyBooBoos;
 
 use HTTP\Response;
 use HTTP\Response\ContentType;
