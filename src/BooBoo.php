@@ -63,7 +63,6 @@ class BooBoo extends \Exception {
 
 		if(!isset(self::$httpHandler)) {
 			self::setUp();
-
 		}
 
 		self::$httpHandler = self::$httpHandler->withStatus($statusCode);
@@ -150,7 +149,7 @@ class BooBoo extends \Exception {
 	 */
 	final public static function exceptionHandler($exception) {
 		if(get_class($exception) !== __CLASS__) {
-			self::$logger->log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+			self::$booboo->getLogger()->log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 
 			$format = ContentType::getInstance()->getString();
 
@@ -176,7 +175,7 @@ class BooBoo extends \Exception {
 			self::$httpHandler->send();
 		}
 		else {
-			self::$logger->log(self::$booboo.": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+			self::$booboo->getLogger()->log(self::$booboo.": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 			self::$httpHandler->overwrite(self::$booboo->printErrorMessage(ContentType::getInstance()->getString()))->send();
 		}
 	}
