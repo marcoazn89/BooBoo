@@ -149,9 +149,7 @@ class BooBoo extends \Exception {
 	 */
 	final public static function exceptionHandler($exception) {
 		if(get_class($exception) !== __CLASS__) {
-			if(self::$booboo->shouldLog()) {
-				self::$booboo->getLogger()->log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
-			}
+			self::$booboo->getLogger()->log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 
 			$format = ContentType::getInstance()->getString();
 
