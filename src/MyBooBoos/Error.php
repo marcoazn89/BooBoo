@@ -68,6 +68,10 @@ abstract class Error {
 		return $this->logger;
 	}
 
+	public function shouldLog() {
+		return !empty($this->logger);
+	}
+
 	/**
 	 * Return an error message in the format that was specified
 	 * @param  String $contentType String that represents an HTTP content-type
