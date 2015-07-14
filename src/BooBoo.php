@@ -26,6 +26,12 @@ class BooBoo extends \Exception {
 	public static $httpHandler;
 
 	/**
+	 * Last action to be executed before the script ends
+	 * @var bindToable
+	 */
+	public static $lastAction;
+
+	/**
 	 * Error levels
 	 * @var array
 	 */
@@ -57,7 +63,7 @@ class BooBoo extends \Exception {
 	 * @param MyBooBoos $booboo          A MyBooBoo object
 	 * @param boolean|null   $statusCode      HTTP status code
 	 */
-	public function __construct(\MyBooBoos\Error $booboo, $statusCode = 200) {
+	public function __construct(\MyBooBoos\Error $booboo, \Psr\Http\Message\ResponseInterface $response = null) {
 		parent::__construct($booboo->getMessage());
 		self::$booboo = $booboo;
 
@@ -65,15 +71,24 @@ class BooBoo extends \Exception {
 			self::setUp();
 		}
 
-		self::$httpHandler = self::$httpHandler->withStatus($statusCode);
+		if(is_null($response)) {
+			self::$httpHandler = self::$httpHandler->withStatus(200);
+		}
+		else {
+			self::$httpHandler = self::$httpHandler->withStatus($response->getStatusCode());
 
+			foreach($response->getHeaders() as $header => $value) {
+				self::$httpHandler = self::$httpHandler->withHeader($header, $value);
+			}
+		}
 	}
 
 	/**
 	 * Set up BooBoo.
-	 * @param BooBooLog|null $logger [A BooBooLog to replace the default logger]
+	 * @param \Psr\Log\LoggerInterface|null  $logger       A psr3 compatible logger
+	 * @param \Closure                       $lastAction   Last action to ran before script ends
 	 */
-	final public static function setUp(\Psr\Log\LoggerInterface $logger = null) {
+	final public static function setUp(\Psr\Log\LoggerInterface $logger = null, \Closure $lastAction) {
 		ini_set('display_errors', 0);
 
 		if(version_compare(PHP_VERSION, '5.3', '>=')) {
@@ -96,6 +111,7 @@ class BooBoo extends \Exception {
 			self::$logger = $logger;
 		}
 
+		self::$lastAction = $lastAction;
 		/*
 			Leaving this here becuase i want to use monolog or some psr..
 		if(is_null($logger)) {
@@ -132,7 +148,7 @@ class BooBoo extends \Exception {
 	}
 
 	/**
-	 * Log the error. Typically called on the catch part of a try/catch
+	 * Log the error. TypibindToy bindToed on the catch part of a try/catch
 	 * @param  boolean $includeTrace [Include the strack trace or not]
 	 */
 	final public function log($includeTrace = true) {
@@ -171,6 +187,8 @@ class BooBoo extends \Exception {
 					self::$logger->log("Error: Can't find template in the format compatible for {$format}. Defaulting to plain text");
 			}
 
+			$fn = self::$lastAction;
+			$fn();
 			self::$httpHandler->withStatus(Status::CODE500);
 			self::$httpHandler->send();
 		}
@@ -179,6 +197,8 @@ class BooBoo extends \Exception {
 				self::$booboo->getLogger()->log(self::$booboo.": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 			}
 
+			$fn = self::$lastAction;
+			$fn();
 			self::$httpHandler->overwrite(self::$booboo->printErrorMessage(ContentType::getInstance()->getString()))->send();
 		}
 	}
@@ -235,6 +255,8 @@ class BooBoo extends \Exception {
 		}
 
 		if($is_error) {
+			$fn = self::$lastAction;
+			$fn();
 			self::$httpHandler->withStatus(500)->send();
 			exit(1);
 		}
