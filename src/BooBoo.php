@@ -88,7 +88,7 @@ class BooBoo extends \Exception {
 	 * @param \Psr\Log\LoggerInterface|null  $logger       A psr3 compatible logger
 	 * @param \Closure                       $lastAction   Last action to ran before script ends
 	 */
-	final public static function setUp(\Psr\Log\LoggerInterface $logger = null, \Closure $lastAction) {
+	final public static function setUp(\Psr\Log\LoggerInterface $logger = null, \Closure $lastAction = null) {
 		ini_set('display_errors', 0);
 
 		if(version_compare(PHP_VERSION, '5.3', '>=')) {
@@ -187,8 +187,11 @@ class BooBoo extends \Exception {
 					self::$logger->log("Error: Can't find template in the format compatible for {$format}. Defaulting to plain text");
 			}
 
-			$fn = self::$lastAction;
-			$fn();
+			if(!is_null(self::$lastAction)) {
+				$fn = self::$lastAction;
+				$fn();
+			}
+
 			self::$httpHandler->withStatus(Status::CODE500);
 			self::$httpHandler->send();
 		}
@@ -197,8 +200,11 @@ class BooBoo extends \Exception {
 				self::$booboo->getLogger()->log(self::$booboo.": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 			}
 
-			$fn = self::$lastAction;
-			$fn();
+			if(!is_null(self::$lastAction)) {
+				$fn = self::$lastAction;
+				$fn();
+			}
+
 			self::$httpHandler->overwrite(self::$booboo->printErrorMessage(ContentType::getInstance()->getString()))->send();
 		}
 	}
@@ -250,13 +256,16 @@ class BooBoo extends \Exception {
 
 		$level = self::$levels[$severity];
 
-		if( ! in_array($severity, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR), true)) {
+		if(!in_array($severity, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR), true)) {
 			self::$logger->log("{$level}: {$message} in {$filepath} at line {$line}.");
 		}
 
 		if($is_error) {
-			$fn = self::$lastAction;
-			$fn();
+			if(!is_null(self::$lastAction)) {
+				$fn = self::$lastAction;
+				$fn();
+			}
+
 			self::$httpHandler->withStatus(500)->send();
 			exit(1);
 		}
