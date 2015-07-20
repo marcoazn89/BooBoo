@@ -1,6 +1,6 @@
 Install via Composer
 ---------------------
-	composer require marcoazn89/http-wrapper:dev-master
+	composer require marcoazn89/booboo:dev-master
 
 Features
 ---------------------
