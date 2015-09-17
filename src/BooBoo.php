@@ -63,7 +63,7 @@ class BooBoo extends \Exception {
 	 * @param MyBooBoos $booboo          A MyBooBoo object
 	 * @param boolean|null   $statusCode      HTTP status code
 	 */
-	public function __construct(\MyBooBoos\Error $booboo, \Psr\Http\Message\ResponseInterface $response = null) {
+	public function __construct(\MyBooBoos\ErrorTemplate $booboo, \Psr\Http\Message\ResponseInterface $response = null) {
 		parent::__construct($booboo->getMessage());
 		self::$booboo = $booboo;
 
