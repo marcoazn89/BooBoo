@@ -1,7 +1,7 @@
 <?php
 namespace MyBooBoos;
 
-class DatabaseError extends Error {
+class DatabaseError extends ErrorTemplate {
 
 	const NOT_AVAILABLE = 'Unable to connect to database';
 	const BAD_QUERY = 'Query is not formatted properly';

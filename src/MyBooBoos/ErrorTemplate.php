@@ -5,7 +5,7 @@ use HTTP\Response;
 use HTTP\Response\ContentType;
 use HTTP\Response\Status;
 
-abstract class Error {
+abstract class ErrorTemplate {
 
 	protected $data;
 	protected $message;
