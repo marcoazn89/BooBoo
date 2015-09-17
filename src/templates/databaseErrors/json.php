@@ -6,5 +6,5 @@ $status = Status::getInstance();
 {
 	"status": <?php echo $status->getCode();?>,
 	"description": "<?php echo $status->getMessage(); ?>",
-	"message": "Please try again later"
+	"message": "Please try again later <?php echo $data ?>".
 }
