@@ -99,13 +99,9 @@ class BooBoo extends \Exception {
 			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_USER_NOTICE);
 		}
 
-		set_exception_handler(array('Exception\BooBoo','exceptionHandler'));
-		set_error_handler(array('Exception\BooBoo','errorHandler'));
-		register_shutdown_function(array('Exception\BooBoo','shutdownFunction'));
-
 		self::$httpHandler = (new Response())->withTypeNegotiation();
 
-		if(is_null($logger)) {
+		if(empty($logger)) {
 			self::$logger = BooBooLogger::getInstance();
 		}
 		else {
@@ -113,6 +109,10 @@ class BooBoo extends \Exception {
 		}
 
 		self::$lastAction = $lastAction;
+
+		set_exception_handler(array('Exception\BooBoo','exceptionHandler'));
+		set_error_handler(array('Exception\BooBoo','errorHandler'));
+		register_shutdown_function(array('Exception\BooBoo','shutdownFunction'));
 		/*
 			Leaving this here becuase i want to use monolog or some psr..
 		if(is_null($logger)) {
@@ -226,8 +226,6 @@ class BooBoo extends \Exception {
 	 * Override the errorHandler
 	 */
 	final public static function errorHandler($severity, $message, $filepath, $line) {
-		error_log($severity . " " . $message . " ------ " . $filepath . "  " . $line);
-		//var_dump($message, $filepath, $line);
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR) & $severity) === $severity);
 
 		if ($is_error) {
@@ -252,15 +250,15 @@ class BooBoo extends \Exception {
 			}
 		}
 
-		if (($severity & error_reporting()) !== $severity) {
+		/*if(($severity & error_reporting()) !== $severity) {
+			error_log("HEYYY $severity $message $filepath $line");
 			return;
-		}
+		}*/
 
 		$level = self::$levels[$severity];
-
-		if(!in_array($severity, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR), true)) {
-			self::$logger->log("{$level}: {$message} in {$filepath} at line {$line}.");
-		}
+		//if(!in_array($severity, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR), true)) {
+			self::$logger->log("{$level}: {$message} in {$filepath} at line {$line}");
+		//}
 
 		if($is_error) {
 			if(!is_null(self::$lastAction)) {
