@@ -48,7 +48,8 @@ class BooBoo extends \Exception {
 		E_USER_WARNING		=>	'User Warning',
 		E_USER_NOTICE		=>	'User Notice',
 		E_USER_DEPRECATED => 'User Deprecated',
-		E_STRICT			=>	'Runtime Notice'
+		E_STRICT			=>	'Runtime Notice',
+		E_RECOVERABLE_ERROR => 'Recoverable Error'
 	);
 
 	protected static $defaultErrorPath = [
@@ -216,7 +217,7 @@ class BooBoo extends \Exception {
 		$last_error = error_get_last();
 
 		if(isset($last_error) && ($last_error['type'] &
-		(E_ERROR | E_PARSE | E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_COMPILE_WARNING))) {
+		(E_ERROR | E_PARSE | E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_COMPILE_WARNING | E_RECOVERABLE_ERROR))) {
 			self::errorHandler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
 		}
 	}
@@ -225,8 +226,9 @@ class BooBoo extends \Exception {
 	 * Override the errorHandler
 	 */
 	final public static function errorHandler($severity, $message, $filepath, $line) {
+		error_log($severity . " " . $message . " ------ " . $filepath . "  " . $line);
 		//var_dump($message, $filepath, $line);
-		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR) & $severity) === $severity);
+		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR) & $severity) === $severity);
 
 		if ($is_error) {
 			$format = ContentType::getInstance()->getString();
