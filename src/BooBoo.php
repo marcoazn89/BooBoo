@@ -52,12 +52,7 @@ class BooBoo extends \Exception {
 		E_RECOVERABLE_ERROR => 'Recoverable Error'
 	);
 
-	protected static $defaultErrorPath = [
-		'text'	=>	__DIR__.'/templates/defaultErrors/text.php',
-		'html'	=>	__DIR__.'/templates/defaultErrors/html.php',
-		'json'	=>	__DIR__.'/templates/defaultErrors/json.php',
-		'xml'	=>	__DIR__.'/templates/defaultErrors/xml.php'
-	];
+	protected static $defaultErrorPath;
 
 	/**
 	 * Constructor
@@ -98,6 +93,13 @@ class BooBoo extends \Exception {
 		else {
 			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_USER_NOTICE);
 		}
+
+		self::$defaultErrorPath = [
+			'text'	=>	__DIR__.'/templates/defaultErrors/text.php',
+			'html'	=>	__DIR__.'/templates/defaultErrors/html.php',
+			'json'	=>	__DIR__.'/templates/defaultErrors/json.php',
+			'xml'	=>	__DIR__.'/templates/defaultErrors/xml.php'
+		];
 
 		self::$httpHandler = (new Response())->withTypeNegotiation();
 
