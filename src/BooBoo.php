@@ -35,7 +35,7 @@ class BooBoo extends \Exception {
 	 * Error levels
 	 * @var array
 	 */
-	public static $levels = array(
+	public static $levels = [
 		E_ERROR				=>	'Fatal Error',
 		E_WARNING			=>	'Warning',
 		E_PARSE				=>	'Parsing Error',
@@ -50,9 +50,11 @@ class BooBoo extends \Exception {
 		E_USER_DEPRECATED => 'User Deprecated',
 		E_STRICT			=>	'Runtime Notice',
 		E_RECOVERABLE_ERROR => 'Recoverable Error'
-	);
+	];
 
 	protected static $defaultErrorPath;
+
+	protected static $ignore = [];
 
 	/**
 	 * Constructor
@@ -82,17 +84,22 @@ class BooBoo extends \Exception {
 	/**
 	 * Set up BooBoo.
 	 * @param \Psr\Log\LoggerInterface|null  $logger       A psr3 compatible logger
-	 * @param \Closure                       $lastAction   Last action to ran before script ends
+	 * @param \Closure                       $lastAction   Last action to run before script ends
+	 * @param int                            $reportLevel  Level of reporting. One can pass a bitmask here
 	 */
-	final public static function setUp(\Psr\Log\LoggerInterface $logger = null, \Closure $lastAction = null) {
+	final public static function setUp(\Psr\Log\LoggerInterface $logger = null, \Closure $lastAction = null, $ignore = []) {
 		ini_set('display_errors', 0);
 
-		if(version_compare(PHP_VERSION, '5.3', '>=')) {
+		/*if(version_compare(PHP_VERSION, '5.3', '>=')) {
 			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT & ~E_USER_NOTICE & ~E_USER_DEPRECATED);
 		}
 		else {
 			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_USER_NOTICE);
-		}
+		}*/
+
+		error_reporting(E_ALL - array_sum($ignore));
+
+		self::$ignore = $ignore;
 
 		self::$defaultErrorPath = [
 			'text'	=>	__DIR__.'/templates/defaultErrors/text.php',
@@ -103,27 +110,19 @@ class BooBoo extends \Exception {
 
 		self::$httpHandler = (new Response())->withTypeNegotiation();
 
-		if(empty($logger)) {
-			self::$logger = BooBooLogger::getInstance();
-		}
-		else {
-			self::$logger = $logger;
-		}
-
-		self::$lastAction = $lastAction;
-
-		set_exception_handler(array('Exception\BooBoo','exceptionHandler'));
-		set_error_handler(array('Exception\BooBoo','errorHandler'));
-		register_shutdown_function(array('Exception\BooBoo','shutdownFunction'));
-		/*
-			Leaving this here becuase i want to use monolog or some psr..
-		if(is_null($logger)) {
-			self::$logger = new Monolog\Logger('test');
-			$log->pushHandler(new StreamHandler('path/to/your.log', Logger::WARNING));
+		/*if(empty($logger)) {
+			self::$logger = (new \Monolog\Logger('PHP_ERROR'))->pushHandler(new \Monolog\Handler\StreamHandler(ini_get('error_log'), \Monolog\Logger::ERROR));
 		}
 		else {
 			self::$logger = $logger;
 		}*/
+
+		self::$logger = $logger;
+		self::$lastAction = $lastAction;
+
+		set_exception_handler(['Exception\BooBoo','exceptionHandler']);
+		set_error_handler(['Exception\BooBoo','errorHandler']);
+		register_shutdown_function(['Exception\BooBoo','shutdownFunction']);
 	}
 
 	/**
@@ -151,24 +150,16 @@ class BooBoo extends \Exception {
 	}
 
 	/**
-	 * Log the error. TypibindToy bindToed on the catch part of a try/catch
-	 * @param  boolean $includeTrace [Include the strack trace or not]
-	 */
-	final public function log($includeTrace = true) {
-		if($includeTrace) {
-			self::$logger->log(self::booboo.": {$this->getMessage()} in {$this->getFile()} at line {$this->getLine()}. Stack trace: {$this->getTraceAsString()}");
-		}
-		else {
-			self::$logger->log(self::booboo.": {$this->getMessage()} in {$this->getFile()} at line {$this->getLine()}.");
-		}
-	}
-
-	/**
 	 * Override the exception handler
 	 */
 	final public static function exceptionHandler($exception) {
 		if(get_class($exception) !== __CLASS__) {
-			self::$logger->log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+			if(!empty(self::$logger)) {
+				self::$logger->critical(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+			}
+			else {
+				error_log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+			}
 
 			$format = ContentType::getInstance()->getString();
 
@@ -195,12 +186,16 @@ class BooBoo extends \Exception {
 				$fn();
 			}
 
-			self::$httpHandler->withStatus(Status::CODE500);
+			self::$httpHandler->withStatus(500);
 			self::$httpHandler->send();
 		}
 		else {
-			if(self::$booboo->shouldLog()) {
-				self::$booboo->getLogger()->log(self::$booboo.": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+			if(!empty($exception->getMessage())) {
+				if(!empty(self::$logger)) {
+					self::$logger->critical(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
+				}
+
+				error_log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 			}
 
 			if(!is_null(self::$lastAction)) {
@@ -228,6 +223,7 @@ class BooBoo extends \Exception {
 	 * Override the errorHandler
 	 */
 	final public static function errorHandler($severity, $message, $filepath, $line) {
+
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR) & $severity) === $severity);
 
 		if ($is_error) {
@@ -252,17 +248,25 @@ class BooBoo extends \Exception {
 			}
 		}
 
-		/*if(($severity & error_reporting()) !== $severity) {
-			error_log("HEYYY $severity $message $filepath $line");
-			return;
-		}*/
-
 		$level = self::$levels[$severity];
-		//if(!in_array($severity, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR), true)) {
-			self::$logger->log("{$level}: {$message} in {$filepath} at line {$line}");
-		//}
+
+		if(!in_array($severity, array_merge([E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], self::$ignore), true)) {
+
+			error_log("{$level}: {$message} in {$filepath} in line {$line}");
+
+			if(!empty(self::$logger)) {
+				self::$logger->error("{$level}: {$message} in {$filepath} in line {$line}");
+			}
+		}
 
 		if($is_error) {
+			if(!empty(self::$logger)) {
+				self::$logger->critical("{$level}: {$message} in {$filepath} in line {$line}");
+			}
+			else {
+				error_log("{$level}: {$message} in {$filepath} in line {$line}");
+			}
+
 			if(!is_null(self::$lastAction)) {
 				$fn = self::$lastAction;
 				$fn();
