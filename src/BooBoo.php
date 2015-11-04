@@ -191,16 +191,23 @@ class BooBoo extends \Exception {
 		}
 		else {
 			if(!empty($exception->getMessage())) {
-				if(!empty(self::$logger)) {
-					if(Status::getInstance()->getCode() >= 500) {
+				if(Status::getInstance()->getCode() >= 500) {
+					if(!empty(self::$logger)) {
 						self::$logger->critical(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
 					}
 					else {
-						self::$logger->warning(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
+						error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 					}
 				}
-
-				error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+				else {
+					if(!empty(self::$logger)) {
+						self::$logger->warning(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
+					}
+					else {
+						error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+					}
+				}
+				//error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 			}
 
 			if(!is_null(self::$lastAction)) {
@@ -249,7 +256,9 @@ class BooBoo extends \Exception {
 					break;
 				default:
 					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
-					self::$logger->log("Error: Can't find template in the format compatible for {$format}. Defaulting to plain text");
+					//self::$logger->log("Error: Can't find template in the format compatible for {$format}. Defaulting to plain text");
+					// Should eventually put this error in booboo's own log maybe?
+					error_log("BooBoo: Can't find template in the format compatible for {$format}. Defaulting to plain text");
 			}
 		}
 
@@ -268,9 +277,9 @@ class BooBoo extends \Exception {
 			if(!empty(self::$logger)) {
 				self::$logger->critical("{$level}: {$message} in {$filepath} in line {$line}");
 			}
-			else {
-				error_log("{$level}: {$message} in {$filepath} in line {$line}");
-			}
+			//else {
+			//error_log("{$level}: {$message} in {$filepath} in line {$line}");
+			//}
 
 			if(!is_null(self::$lastAction)) {
 				$fn = self::$lastAction;
