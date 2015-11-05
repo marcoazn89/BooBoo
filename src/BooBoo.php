@@ -150,6 +150,10 @@ class BooBoo extends \Exception {
 		return array_merge(self::$vars, $vars);
 	}
 
+	public static function resetVars() {
+		return self::$vars = [];
+	}
+
 	/**
 	 * Get the contents of an error template
 	 * @param  String $file [Path of the file]
