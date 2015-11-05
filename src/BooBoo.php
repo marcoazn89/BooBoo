@@ -31,7 +31,7 @@ class BooBoo extends \Exception {
 	 */
 	public static $lastAction;
 
-	public static $vars;
+	public static $vars = [];
 
 	/**
 	 * Error levels
