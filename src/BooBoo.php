@@ -31,6 +31,8 @@ class BooBoo extends \Exception {
 	 */
 	public static $lastAction;
 
+	public static $vars;
+
 	/**
 	 * Error levels
 	 * @var array
@@ -144,6 +146,10 @@ class BooBoo extends \Exception {
 		self::$defaultErrorPath[$error] = $path;
 	}
 
+	public static function addVars(array $vars) {
+		return array_merge(self::$vars, $vars);
+	}
+
 	/**
 	 * Get the contents of an error template
 	 * @param  String $file [Path of the file]
@@ -183,10 +189,10 @@ class BooBoo extends \Exception {
 	final public static function exceptionHandler($exception) {
 		if(get_class($exception) !== __CLASS__) {
 			if(!empty(self::$logger)) {
-				self::$logger->critical(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
+				self::$logger->critical(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}", self::$vars);
 			}
 			else {
-				error_log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
+				error_log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}", self::$vars);
 			}
 
 			$format = ContentType::getInstance()->getString();
@@ -223,18 +229,18 @@ class BooBoo extends \Exception {
 
 				if(Status::getInstance()->getCode() >= 500) {
 					if(!empty(self::$logger)) {
-						self::$logger->critical(self::getExceptionMsg($exception, self::$booboo, $message));
+						self::$logger->critical(self::getExceptionMsg($exception, self::$booboo, $message), array_merge(self::$booboo->getContext(), self::$vars));
 					}
 					else {
-						error_log(self::getExceptionMsg($exception, self::$booboo, $message));
+						error_log(self::getExceptionMsg($exception, self::$booboo, $message), array_merge(self::$booboo->getContext(), self::$vars));
 					}
 				}
 				else {
 					if(!empty(self::$logger)) {
-						self::$logger->warning(self::getExceptionMsg($exception, self::$booboo, $message));
+						self::$logger->warning(self::getExceptionMsg($exception, self::$booboo, $message), array_merge(self::$booboo->getContext(), self::$vars));
 					}
 					else {
-						error_log(self::getExceptionMsg($exception, self::$booboo, $message));
+						error_log(self::getExceptionMsg($exception, self::$booboo, $message), array_merge(self::$booboo->getContext(), self::$vars));
 					}
 				}
 				//error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
@@ -298,13 +304,13 @@ class BooBoo extends \Exception {
 			error_log("{$level}: {$message} in {$filepath} in line {$line}");
 
 			if(!empty(self::$logger)) {
-				self::$logger->error("{$level}: {$message} in {$filepath} in line {$line}");
+				self::$logger->error("{$level}: {$message} in {$filepath} in line {$line}", self::$vars);
 			}
 		}
 
 		if($is_error) {
 			if(!empty(self::$logger)) {
-				self::$logger->critical("{$level}: {$message} in {$filepath} in line {$line}");
+				self::$logger->critical("{$level}: {$message} in {$filepath} in line {$line}", self::$vars);
 			}
 			//else {
 			//error_log("{$level}: {$message} in {$filepath} in line {$line}");
