@@ -168,8 +168,9 @@ class BooBoo extends \Exception {
 		}
 		else {
 			$trace = $exception->getTrace();
-			//echo var_dump($trace[0]['file']);
+
 			$origin = empty($trace[0]['file']) ? '' : "{$trace[0]['file']}({$trace[0]['line']}): ";
+
 			$log .= "\nOriginated at: {$origin}{$trace[0]['class']}{$trace[0]['type']}{$trace[0]['function']}()";
 		}
 
@@ -264,7 +265,6 @@ class BooBoo extends \Exception {
 	 * Override the errorHandler
 	 */
 	final public static function errorHandler($severity, $message, $filepath, $line) {
-
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR) & $severity) === $severity);
 
 		if ($is_error) {
