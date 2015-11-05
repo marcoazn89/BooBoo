@@ -158,16 +158,34 @@ class BooBoo extends \Exception {
 		return $buffer;
 	}
 
+	protected static function getExceptionMsg($exception, $booboo, $message) {
+		$log = "";
+
+		$log = $booboo->getTag().": {$message} in {$exception->getFile()} in line {$exception->getLine()}.";
+
+		if($booboo->fullTrace()) {
+			$log .= "\nStack trace:\n{$exception->getTraceAsString()}";
+		}
+		else {
+			$trace = $exception->getTrace();
+			//echo var_dump($trace[0]['file']);
+			$origin = empty($trace[0]['file']) ? '' : "{$trace[0]['file']}({$trace[0]['line']}): ";
+			$log .= "\nOriginated at: {$origin}{$trace[0]['class']}{$trace[0]['type']}{$trace[0]['function']}()";
+		}
+
+		return $log;
+	}
+
 	/**
 	 * Override the exception handler
 	 */
 	final public static function exceptionHandler($exception) {
 		if(get_class($exception) !== __CLASS__) {
 			if(!empty(self::$logger)) {
-				self::$logger->critical(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+				self::$logger->critical(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
 			}
 			else {
-				error_log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+				error_log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
 			}
 
 			$format = ContentType::getInstance()->getString();
@@ -204,21 +222,23 @@ class BooBoo extends \Exception {
 
 				if(Status::getInstance()->getCode() >= 500) {
 					if(!empty(self::$logger)) {
-						self::$logger->critical(self::$booboo->getTag().": {$message} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
+						self::$logger->critical(self::getExceptionMsg($exception, self::$booboo, $message));
 					}
 					else {
-						error_log(self::$booboo->getTag().": {$message} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+						error_log(self::getExceptionMsg($exception, self::$booboo, $message));
 					}
 				}
 				else {
 					if(!empty(self::$logger)) {
-						self::$logger->warning(self::$booboo->getTag().": {$message} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
+						error_log(json_encode($exception->getTrace()));
+						$tag = self::$booboo->getTag();
+						self::$logger->warning(self::getExceptionMsg($exception, self::$booboo, $message));
 					}
 					else {
-						error_log(self::$booboo->getTag().": {$message} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+						error_log(self::getExceptionMsg($exception, self::$booboo, $message));
 					}
 				}
-				//error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+				//error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
 			}
 
 			if(!is_null(self::$lastAction)) {
