@@ -120,6 +120,10 @@ abstract class ErrorTemplate {
 		return $buffer;
 	}
 
+	public function getData() {
+		return $this->data;
+	}
+
 	/**
 	 * Get error message that was passed in the constructor
 	 * @return String [Error message]

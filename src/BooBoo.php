@@ -56,6 +56,15 @@ class BooBoo extends \Exception {
 
 	protected static $ignore = [];
 
+	protected static $alwaysLog = true;
+
+	protected static $settings = [
+		'alwaysLog'					=>	false,
+		'ignore'						=>	[],
+		'defaultErrorPaths'	=>	[],
+		'lastAction'				=>	null
+	];
+
 	/**
 	 * Constructor
 	 * @param MyBooBoos $booboo          A MyBooBoo object
@@ -190,21 +199,23 @@ class BooBoo extends \Exception {
 			self::$httpHandler->send();
 		}
 		else {
-			if(!empty($exception->getMessage())) {
+			if(!empty($message = $exception->getMessage()) || self::$alwaysLog) {
+				$message = empty($message) ? self::$booboo->getData() : $message;
+
 				if(Status::getInstance()->getCode() >= 500) {
 					if(!empty(self::$logger)) {
-						self::$logger->critical(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
+						self::$logger->critical(self::$booboo->getTag().": {$message} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
 					}
 					else {
-						error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+						error_log(self::$booboo->getTag().": {$message} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 					}
 				}
 				else {
 					if(!empty(self::$logger)) {
-						self::$logger->warning(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
+						self::$logger->warning(self::$booboo->getTag().": {$message} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}", self::$booboo->getContext());
 					}
 					else {
-						error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
+						error_log(self::$booboo->getTag().": {$message} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
 					}
 				}
 				//error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} at line {$exception->getLine()}. Stack trace: {$exception->getTraceAsString()}");
