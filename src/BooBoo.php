@@ -230,8 +230,6 @@ class BooBoo extends \Exception {
 				}
 				else {
 					if(!empty(self::$logger)) {
-						error_log(json_encode($exception->getTrace()));
-						$tag = self::$booboo->getTag();
 						self::$logger->warning(self::getExceptionMsg($exception, self::$booboo, $message));
 					}
 					else {
