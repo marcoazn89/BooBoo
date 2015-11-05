@@ -148,7 +148,7 @@ class BooBoo extends \Exception {
 	}
 
 	public static function addVars(array $vars) {
-		return array_merge(self::$vars, $vars);
+		self::$vars = array_merge(self::$vars, $vars);
 	}
 
 	public static function resetVars() {
@@ -177,13 +177,13 @@ class BooBoo extends \Exception {
 		if($booboo->fullTrace()) {
 			$log .= "\nStack trace:\n{$exception->getTraceAsString()}";
 		}
-		else {
+		/*else {
 			$trace = $exception->getTrace();
 
 			$origin = empty($trace[0]['file']) ? '' : "{$trace[0]['file']}({$trace[0]['line']}): ";
 
 			$log .= "\nOriginated at: {$origin}{$trace[0]['class']}{$trace[0]['type']}{$trace[0]['function']}()";
-		}
+		}*/
 
 		return $log;
 	}
