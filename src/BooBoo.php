@@ -192,7 +192,7 @@ class BooBoo extends \Exception {
 		return $log;
 	}
 
-	protected static function getContext($type, $tag = null, $file = null, $line = null, $code = null) {
+	protected static function getContext($type, $tag = null, $message, $file = null, $line = null, $code = null) {
 		$error = [
 			'error' => [
 				'code'     => $code,
@@ -200,6 +200,7 @@ class BooBoo extends \Exception {
 				  'file' => $file,
 				  'line' => $line
 				],
+				'message'  => $message,
 				'tag'      => $tag
 			]
 		];
@@ -228,7 +229,7 @@ class BooBoo extends \Exception {
 	final public static function exceptionHandler($exception) {
 		if(($class = get_class($exception)) !== __CLASS__) {
 
-			$context = self::getContext(self::EXCEPTION, $class, $exception->getFile(), $exception->getLine());
+			$context = self::getContext(self::EXCEPTION, $class, $exception->getMessage(), $exception->getFile(), $exception->getLine());
 
 			if(!empty(self::$logger)) {
 				self::$logger->critical($class.": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}", $context);
@@ -267,9 +268,10 @@ class BooBoo extends \Exception {
 		}
 		else {
 			if(!empty($message = $exception->getMessage()) || self::$alwaysLog) {
-				$context = self::getContext(self::BOOBOO, self::$booboo->getTag(), $exception->getFile(), $exception->getLine());
 
 				$message = empty($message) ? self::$booboo->getData() : $message;
+
+				$context = self::getContext(self::BOOBOO, self::$booboo->getTag(), $message, $exception->getFile(), $exception->getLine());
 
 				if(Status::getInstance()->getCode() >= 500) {
 					if(!empty(self::$logger)) {
@@ -343,7 +345,7 @@ class BooBoo extends \Exception {
 
 		$level = self::$levels[$severity];
 
-		$context = self::getContext(self::ERROR, $level, $filepath, $line);
+		$context = self::getContext(self::ERROR, $level, $message, $filepath, $line);
 
 		if(!in_array($severity, array_merge([E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], self::$ignore), true)) {
 
