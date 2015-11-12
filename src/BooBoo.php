@@ -67,6 +67,10 @@ class BooBoo extends \Exception {
 		'lastAction'				=>	null
 	];
 
+	const BOOBOO = 1;
+	const EXCEPTION = 2;
+	const ERROR = 3;
+
 	/**
 	 * Constructor
 	 * @param MyBooBoos $booboo          A MyBooBoo object
@@ -188,16 +192,49 @@ class BooBoo extends \Exception {
 		return $log;
 	}
 
+	protected static function getContext($type, $tag = null, $file = null, $line = null, $code = null) {
+		$error = [
+			'error' => [
+				'code'     => $code,
+				'location' => [
+				  'file' => $file,
+				  'line' => $line
+				],
+				'tag'      => $tag
+			]
+		];
+
+		switch($type) {
+			case self::BOOBOO:
+				return array_merge(
+					self::$booboo->getContext(),
+					self::$vars,
+					$error
+				);
+			case self::EXCEPTION:
+			case self::ERROR:
+				return array_merge(
+					self::$vars,
+					$error
+				);
+			default:
+				throw new \InvalidArgumentException('Incorrect type passed for setContext');
+		}
+	}
+
 	/**
 	 * Override the exception handler
 	 */
 	final public static function exceptionHandler($exception) {
-		if(get_class($exception) !== __CLASS__) {
+		if(($class = get_class($exception)) !== __CLASS__) {
+
+			$context = self::getContext(self::EXCEPTION, $class, $exception->getFile(), $exception->getLine());
+
 			if(!empty(self::$logger)) {
-				self::$logger->critical(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}", self::$vars);
+				self::$logger->critical($class.": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}", $context);
 			}
 			else {
-				error_log(get_class($exception).": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
+				error_log($class.": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
 			}
 
 			$format = ContentType::getInstance()->getString();
@@ -230,11 +267,13 @@ class BooBoo extends \Exception {
 		}
 		else {
 			if(!empty($message = $exception->getMessage()) || self::$alwaysLog) {
+				$context = self::getContext(self::BOOBOO, self::$booboo->getTag(), $exception->getFile(), $exception->getLine());
+
 				$message = empty($message) ? self::$booboo->getData() : $message;
 
 				if(Status::getInstance()->getCode() >= 500) {
 					if(!empty(self::$logger)) {
-						self::$logger->critical(self::getExceptionMsg($exception, self::$booboo, $message), array_merge(self::$booboo->getContext(), self::$vars));
+						self::$logger->critical(self::getExceptionMsg($exception, self::$booboo, $message), $context);
 					}
 					else {
 						error_log(self::getExceptionMsg($exception, self::$booboo, $message));
@@ -242,7 +281,7 @@ class BooBoo extends \Exception {
 				}
 				else {
 					if(!empty(self::$logger)) {
-						self::$logger->warning(self::getExceptionMsg($exception, self::$booboo, $message), array_merge(self::$booboo->getContext(), self::$vars));
+						self::$logger->warning(self::getExceptionMsg($exception, self::$booboo, $message), $context);
 					}
 					else {
 						error_log(self::getExceptionMsg($exception, self::$booboo, $message));
@@ -304,18 +343,20 @@ class BooBoo extends \Exception {
 
 		$level = self::$levels[$severity];
 
+		$context = self::getContext(self::ERROR, $level, $filepath, $line);
+
 		if(!in_array($severity, array_merge([E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], self::$ignore), true)) {
 
 			error_log("{$level}: {$message} in {$filepath} in line {$line}");
 
 			if(!empty(self::$logger)) {
-				self::$logger->error("{$level}: {$message} in {$filepath} in line {$line}", self::$vars);
+				self::$logger->error("{$level}: {$message} in {$filepath} in line {$line}", $context);
 			}
 		}
 
 		if($is_error) {
 			if(!empty(self::$logger)) {
-				self::$logger->critical("{$level}: {$message} in {$filepath} in line {$line}", self::$vars);
+				self::$logger->critical("{$level}: {$message} in {$filepath} in line {$line}", $context);
 			}
 			//else {
 			//error_log("{$level}: {$message} in {$filepath} in line {$line}");
