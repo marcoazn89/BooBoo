@@ -229,10 +229,12 @@ class BooBoo extends \Exception {
 	final public static function exceptionHandler($exception) {
 		if(($class = get_class($exception)) !== __CLASS__) {
 
-			$context = self::getContext(self::EXCEPTION, $class, $exception->getMessage(), $exception->getFile(), $exception->getLine());
+			$msg = preg_replace("~[\r\n]~", ' ', $exception->getMessage());
+
+			$context = self::getContext(self::EXCEPTION, $class, $msg, $exception->getFile(), $exception->getLine());
 
 			if(!empty(self::$logger)) {
-				self::$logger->critical($class.": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}", $context);
+				self::$logger->critical($class.": {$msg} in {$exception->getFile()} in line {$exception->getLine()}.", $context);
 			}
 			else {
 				error_log($class.": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
