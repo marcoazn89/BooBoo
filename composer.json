@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=5.3.0",
-        "marcoazn89/http-wrapper": "dev-dev",
+        "marcoazn89/http-wrapper": "dev-master",
         "monolog/monolog": "^1.14"
     },
     "autoload": {

@@ -2,8 +2,7 @@
 namespace Exception;
 
 use \HTTP\Response;
-use \HTTP\Response\Status;
-use \HTTP\Response\ContentType;
+use \HTTP\Header\ContentType;
 
 class BooBoo extends \Exception {
 
@@ -93,7 +92,7 @@ class BooBoo extends \Exception {
 			self::$httpHandler = self::$httpHandler->withStatus($response->getStatusCode());
 
 			foreach($response->getHeaders() as $header => $value) {
-				self::$httpHandler = self::$httpHandler->withHeader($header, $value);
+				self::$httpHandler = self::$httpHandler->withHeader($header, implode(',', $value));
 			}
 		}
 	}
@@ -229,7 +228,6 @@ class BooBoo extends \Exception {
 	 */
 	final public static function exceptionHandler($exception) {
 		if(($class = get_class($exception)) !== __CLASS__) {
-
 			$msg = preg_replace("~[\r\n]~", ' ', $exception->getMessage());
 
 			$context = self::getContext(self::EXCEPTION, $class, $msg, $exception->getFile(), $exception->getLine());
@@ -241,7 +239,7 @@ class BooBoo extends \Exception {
 				error_log($class.": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
 			}
 
-			$format = ContentType::getInstance()->getString();
+			$format = self::$httpHandler->getHeaderLine(ContentType::name());
 
 			switch($format) {
 				case ContentType::TEXT:
@@ -276,7 +274,7 @@ class BooBoo extends \Exception {
 
 				$context = self::getContext(self::BOOBOO, self::$booboo->getTag(), $message, $exception->getFile(), $exception->getLine());
 
-				if(Status::getInstance()->getCode() >= 500) {
+				if($format = self::$httpHandler->getStatusCode() >= 500) {
 					if(!empty(self::$logger)) {
 						self::$logger->critical(self::getExceptionMsg($exception, self::$booboo, $message), $context);
 					}
@@ -300,7 +298,7 @@ class BooBoo extends \Exception {
 				$fn();
 			}
 
-			self::$httpHandler->overwrite(self::$booboo->printErrorMessage(ContentType::getInstance()->getString()))->send();
+			self::$httpHandler->overwrite(self::$booboo->printErrorMessage(self::$httpHandler->getHeaderLine(ContentType::name()), self::$httpHandler->getStatusCode()))->send();
 		}
 	}
 
@@ -323,7 +321,7 @@ class BooBoo extends \Exception {
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR) & $severity) === $severity);
 
 		if ($is_error) {
-			$format = ContentType::getInstance()->getString();
+			$format = self::$httpHandler->getHeaderLine(ContentType::name());
 
 			switch($format) {
 				case ContentType::TEXT:
