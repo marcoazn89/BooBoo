@@ -8,9 +8,27 @@ require '../vendor/autoload.php';
 use Exception\BooBoo;
 
 \HTTP\Support\TypeSupport::addSupport([
-	\HTTP\Response\ContentType::HTML
-	//\HTTP\Response\ContentType::TEXT
+	//\HTTP\Header\ContentType::HTML,
+	//\HTTP\Header\ContentType::TEXT
 ]);
+
+class APIException extends \Exception\BooBoo
+{
+    const BAD_CALL = 'Incorrect use of API';
+
+    protected function getTag()
+    {
+        return 'ApiError';
+    }
+
+    protected function getTemplates()
+    {
+        return [
+            //'text' => 'Sorry, error happened!',
+            'json' => __DIR__ . '/../src/templates/json.php'
+        ];
+    }
+}
 
 $logger = (new \Monolog\Logger('TEST'))
   ->pushHandler(
@@ -18,10 +36,18 @@ $logger = (new \Monolog\Logger('TEST'))
       new \Monolog\Handler\StreamHandler(__DIR__.'/log'),
       \Monolog\Logger::WARNING
     )
+  )
+  ->pushHandler(
+    new \Monolog\Handler\FilterHandler(
+      new \Monolog\Handler\StreamHandler(__DIR__.'/error.log', \Monolog\Logger::DEBUG),
+      \Monolog\Logger::DEBUG,
+      \Monolog\Logger::NOTICE
+    )
   );
 
 BooBoo::setUp(
   $logger,
+  true,
   function() { error_log("testing callable");},
   [E_NOTICE, E_DEPRECATED]
 );
@@ -29,15 +55,25 @@ BooBoo::setUp(
 //throw new Exception("FAIL");
 //trigger_error("hahaha", E_USER_NOTICE);
 
+$logger->debug("DEBBUGGINGGGGGGGGGGGGG");
 $logger->notice("this will only appear in the logs when there's an error higuer or equal to a \Monolog\Logger::WARNING");
 //$logger->warning("this will only appear in the logs when there's an error higuer or equal to a \Monolog\Logger::WARNING");
 
-throw new \Exception\BooBoo(
-	new MyBooBoos\DatabaseError('The message for the client', 'The message for the logs', ['ip' => 12345]),
-	(new \HTTP\Response())->withStatus(400)->withLanguage(\HTTP\Response\Language::DUTCH));
+BooBoo::addVars(['userAgent' => 'mine']);
+
+//try {
+  throw (new APIException(APIException::BAD_CALL))
+    ->response((new \HTTP\Response())->withStatus(400))
+    ->displayMessage("BAHAHAHAHA")
+    ->logContext(['bananas' => 'aaa'])
+    ->templateData(['a' => 'b'])
+    ->trace(false);
+//} catch (\Exception $e) {
+  throw new \Exception('mmm');
+//}
 
 //fatal error
-//$a->o();
+$a->o();
 
 // Warning
 $k = [];
