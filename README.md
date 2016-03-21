@@ -7,7 +7,7 @@ Features
 * Dynamic error templates for production errors
 * Content negotiation to show the right error format (HTML, JSON, XML, etc)
 * PSR-3 compliant (set your own logger)
-* Define your own error classes + constants for consistancy in your logs
+* PSR-7 compliant (pass a response object with headers and status code)
 
 Run BooBoo
 ------------------------------
