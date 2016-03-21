@@ -1,5 +1,5 @@
 <response>
-	<status>500</status>
-	<description>Internal Server Error</description>
-	<message>Please try again later</message>
+	<status><?php echo $response->getStatusCode();?></status>
+	<description><?php echo $response->getReasonPhrase(); ?></description>
+	<message><?php if (!empty($message)) echo $message; else echo 'Please try again later'; ?></message>
 </response>
