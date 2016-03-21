@@ -3,40 +3,41 @@ namespace Exception;
 
 use \HTTP\Response;
 use \HTTP\Header\ContentType;
+use \Psr\Http\Message\ResponseInterface;
 
-class BooBoo extends \Exception {
-
-	/**
-	 * The Error object
-	 * @var MyBooBoos\Error
-	 */
-	public static $booboo;
+abstract class BooBoo extends \Exception
+{
+	const BOOBOO = 1;
+	const EXCEPTION = 2;
+	const ERROR = 3;
 
 	/**
 	 * The logger object
 	 * @var BooBoo\BooBooLog
 	 */
-	public static $logger;
+	protected static $logger;
 
 	/**
 	 * HTTP response handler
 	 * @var HTTP\Response
 	 */
-	public static $httpHandler;
+	protected static $httpHandler;
 
 	/**
 	 * Last action to be executed before the script ends
 	 * @var bindToable
 	 */
-	public static $lastAction;
+	protected static $lastAction;
 
-	public static $vars = [];
+	protected static $trace;
+
+	protected static $vars = [];
 
 	/**
 	 * Error levels
 	 * @var array
 	 */
-	public static $levels = [
+	protected static $levels = [
 		E_ERROR				=>	'Fatal Error',
 		E_WARNING			=>	'Warning',
 		E_PARSE				=>	'Parsing Error',
@@ -60,41 +61,42 @@ class BooBoo extends \Exception {
 
 	protected static $alwaysLog = true;
 
-	protected static $settings = [
-		'alwaysLog'					=>	false,
-		'ignore'						=>	[],
-		'defaultErrorPaths'	=>	[],
-		'lastAction'				=>	null
-	];
+	protected static $booboo;
 
-	const BOOBOO = 1;
-	const EXCEPTION = 2;
-	const ERROR = 3;
+	public function __construct($message = null, $code = 0, Exception $previous = null)
+	{
+		parent::__construct($message, $code, $previous);
 
-	/**
-	 * Constructor
-	 * @param MyBooBoos $booboo          A MyBooBoo object
-	 * @param boolean|null   $statusCode      HTTP status code
-	 */
-	public function __construct(\MyBooBoos\ErrorTemplate $booboo, \Psr\Http\Message\ResponseInterface $response = null) {
-		// don't really need to pass getMessage() because we never do $exception->getMessage()
-		parent::__construct($booboo->getMessage());
-		self::$booboo = $booboo;
-
-		if(!isset(self::$httpHandler)) {
+		if (!isset(self::$httpHandler)) {
 			self::setUp();
 		}
 
-		if(is_null($response)) {
-			self::$httpHandler = self::$httpHandler->withStatus(200);
-		}
-		else {
-			self::$httpHandler = self::$httpHandler->withStatus($response->getStatusCode());
+		$this->buildObj();
+	}
 
-			foreach($response->getHeaders() as $header => $value) {
-				self::$httpHandler = self::$httpHandler->withHeader($header, implode(',', $value));
-			}
-		}
+	protected function buildObj()
+	{
+		self::$booboo = new \StdClass;
+		self::$booboo->tag = $this->getTag();
+		self::$booboo->alwaysLog = true;
+		self::$booboo->displayMessage = null;
+		self::$booboo->logContext = [];
+		self::$booboo->trace = false;
+		self::$booboo->templateData = null;
+		self::$booboo->httpHandler = (new Response())->withTypeNegotiation()->withStatus(500);
+		self::$booboo->templates = array_merge(self::$defaultErrorPath, $this->getTemplates());
+	}
+
+	/**
+	 * Get error tag that will appear in the error logs.
+	 * Example: <tag>: Something went wrong
+	 * @return String [Tag name]
+	 */
+	abstract protected function getTag();
+
+	protected function getTemplates()
+	{
+		return [];
 	}
 
 	/**
@@ -103,42 +105,78 @@ class BooBoo extends \Exception {
 	 * @param \Closure                       $lastAction   Last action to run before script ends
 	 * @param int                            $reportLevel  Level of reporting. One can pass a bitmask here
 	 */
-	final public static function setUp(\Psr\Log\LoggerInterface $logger = null, \Closure $lastAction = null, $ignore = []) {
+	final public static function setUp(\Psr\Log\LoggerInterface $logger = null, $traceAlwaysOn = false, \Closure $lastAction = null, $ignore = [])
+	{
 		ini_set('display_errors', 0);
-
-		/*if(version_compare(PHP_VERSION, '5.3', '>=')) {
-			error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED & ~E_STRICT & ~E_USER_NOTICE & ~E_USER_DEPRECATED);
-		}
-		else {
-			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_USER_NOTICE);
-		}*/
 
 		error_reporting(E_ALL - array_sum($ignore));
 
 		self::$ignore = $ignore;
 
 		self::$defaultErrorPath = [
-			'text'	=>	__DIR__.'/templates/defaultErrors/text.php',
-			'html'	=>	__DIR__.'/templates/defaultErrors/html.php',
-			'json'	=>	__DIR__.'/templates/defaultErrors/json.php',
-			'xml'	=>	__DIR__.'/templates/defaultErrors/xml.php'
+			'text'	=>	__DIR__ . '/templates/text.php',
+			'html'	=>	__DIR__ . '/templates/html.php',
+			'json'	=>	__DIR__ . '/templates/json.php',
+			'xml'	=>	__DIR__ . '/templates/xml.php'
 		];
 
-		self::$httpHandler = (new Response())->withTypeNegotiation();
-
-		/*if(empty($logger)) {
-			self::$logger = (new \Monolog\Logger('PHP_ERROR'))->pushHandler(new \Monolog\Handler\StreamHandler(ini_get('error_log'), \Monolog\Logger::ERROR));
-		}
-		else {
-			self::$logger = $logger;
-		}*/
+		self::$httpHandler = (new Response())->withTypeNegotiation()->withStatus(500);
 
 		self::$logger = $logger;
+		self::$trace = $traceAlwaysOn;
 		self::$lastAction = $lastAction;
 
 		set_exception_handler(['Exception\BooBoo','exceptionHandler']);
 		set_error_handler(['Exception\BooBoo','errorHandler']);
 		register_shutdown_function(['Exception\BooBoo','shutdownFunction']);
+	}
+
+	public function noLog()
+	{
+		self::$booboo->alwaysLog = false;
+
+		return $this;
+	}
+
+	public function displayMessage($message)
+	{
+		self::$booboo->displayMessage = $message;
+
+		return $this;
+	}
+
+	public function logContext($context)
+	{
+		self::$booboo->logContext = $context;
+
+		return $this;
+	}
+
+	public function trace($turnOnTrace)
+	{
+		self::$booboo->trace = $turnOnTrace;
+
+		return $this;
+	}
+
+	public function response(ResponseInterface $response)
+	{
+		self::$booboo->httpHandler = self::$booboo->httpHandler->withStatus(
+			$response->getStatusCode() < 400 ? 500 : $response->getStatusCode()
+		);
+
+		foreach ($response->getHeaders() as $header => $value) {
+			self::$booboo->httpHandler = self::$booboo->httpHandler->withHeader($header, implode(',', $value));
+		}
+
+		return $this;
+	}
+
+	public function templateData($data)
+	{
+		self::$booboo->templateData = $data;
+
+		return $this;
 	}
 
 	/**
@@ -147,16 +185,19 @@ class BooBoo extends \Exception {
 	 * @param	 string $error 	The error path to be overwritten
 	 * @param  string $path   A path to a folder containing default errors for BooBoo
 	 */
-	public static function defaultErrorPath($error, $path) {
+	public static function defaultErrorPath($error, $path)
+	{
 		self::$defaultErrorPath[$error] = $path;
 	}
 
-	public static function addVars(array $vars) {
+	public static function addVars(array $vars)
+	{
 		self::$vars = array_merge(self::$vars, $vars);
 	}
 
-	public static function resetVars() {
-		return self::$vars = [];
+	public static function resetVars()
+	{
+		self::$vars = [];
 	}
 
 	/**
@@ -165,34 +206,58 @@ class BooBoo extends \Exception {
 	 * @param  mixed $data [Data to be used in the file. This may get deprecated]
 	 * @return file
 	 */
-	protected static function getContents($file, $data = null) {
+	protected static function getContents($content, $response, $message, $data)
+	{
 		ob_start();
-		include($file);
+
+		if (is_file($content)) {
+			include($content);
+		} else {
+			echo $content;
+		}
+
 		$buffer = ob_get_contents();
 		ob_end_clean();
+
 		return $buffer;
 	}
 
-	protected static function getExceptionMsg($exception, $booboo, $message) {
+	protected static function getErrorTemplate($response, $templates, $message = null, $data = null)
+	{
+		switch ($response->getHeaderLine(ContentType::name())) {
+			case ContentType::TEXT:
+				return self::getContents($templates['text'], $response, $message, $data);
+				break;
+			case ContentType::HTML:
+				return self::getContents($templates['html'], $response, $message, $data);
+				break;
+			case ContentType::XML:
+				return self::getContents($templates['xml'], $response, $message, $data);
+				break;
+			case ContentType::JSON:
+				return self::getContents($templates['json'], $response, $message, $data);
+				break;
+			default:
+				error_log("Error: Can't find template in the format compatible for " . $response->getHeaderLine(ContentType::name()) . ". Defaulting to plain text");
+				return self::getContents(self::getText(), $data);
+		}
+	}
+
+	protected static function getExceptionMsg($tag, $exception, $trace = false)
+	{
 		$log = "";
 
-		$log = $booboo->getTag().": {$message} in {$exception->getFile()} in line {$exception->getLine()}.";
+		$log = $tag . ": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.";
 
-		if($booboo->fullTrace()) {
+		if ($trace) {
 			$log .= "\nStack trace:\n{$exception->getTraceAsString()}";
 		}
-		/*else {
-			$trace = $exception->getTrace();
-
-			$origin = empty($trace[0]['file']) ? '' : "{$trace[0]['file']}({$trace[0]['line']}): ";
-
-			$log .= "\nOriginated at: {$origin}{$trace[0]['class']}{$trace[0]['type']}{$trace[0]['function']}()";
-		}*/
 
 		return $log;
 	}
 
-	protected static function getContext($type, $tag = null, $message, $file = null, $line = null, $code = null) {
+	protected static function getContext($type, $tag = null, $message, $file = null, $line = null, $code = null)
+	{
 		$error = [
 			'error' => [
 				'code'     => $code,
@@ -208,7 +273,7 @@ class BooBoo extends \Exception {
 		switch($type) {
 			case self::BOOBOO:
 				return array_merge(
-					self::$booboo->getContext(),
+					empty(self::$booboo->logContext) ? [] : self::$booboo->logContext,
 					self::$vars,
 					$error
 				);
@@ -223,92 +288,102 @@ class BooBoo extends \Exception {
 		}
 	}
 
+	public static function cleanUp()
+	{
+		$vars = [
+			self::$alwaysLog,
+			self::$logContext,
+			self::$trace,
+			self::$httpHandler,
+			self::$displayMessage,
+			self::$templateData,
+			self::$lastAction
+		];
+
+		self::$alwaysLog = true;
+		self::$logContext = [];
+		self::$trace = false;
+		self::$httpHandler;
+		self::$displayMessage = null;
+		self::$templateData = null;
+		self::$lastAction = null;
+
+		return $vars;
+	}
+
 	/**
 	 * Override the exception handler
 	 */
-	final public static function exceptionHandler($exception) {
-		if(($class = get_class($exception)) !== __CLASS__) {
+	final public static function exceptionHandler($exception)
+	{
+		if (!$exception instanceof \Exception\BooBoo) {
+			$class = get_class($exception);
 			$msg = preg_replace("~[\r\n]~", ' ', $exception->getMessage());
 
-			$context = self::getContext(self::EXCEPTION, $class, $msg, $exception->getFile(), $exception->getLine());
+			$context = self::getContext(self::EXCEPTION, $class, $msg, $exception->getFile(), $exception->getLine(), $exception->getCode());
 
-			if(!empty(self::$logger)) {
+			if (!empty(self::$logger)) {
 				self::$logger->critical($class.": {$msg} in {$exception->getFile()} in line {$exception->getLine()}.", $context);
 			}
 			else {
-				error_log($class.": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
+				error_log(self::getExceptionMsg($class, $exception, self::$trace));
 			}
 
-			$format = self::$httpHandler->getHeaderLine(ContentType::name());
-
-			switch($format) {
-				case ContentType::TEXT:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
-					break;
-				case ContentType::HTML:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['html']));
-					break;
-				case ContentType::JSON:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['json']));
-					break;
-				case ContentType::XML:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['xml']));
-					break;
-				default:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
-					error_log("Error: Can't find template in the format compatible for {$format}. Defaulting to plain text");
-			}
-
-			if(!is_null(self::$lastAction)) {
+			if (!is_null(self::$lastAction)) {
 				$fn = self::$lastAction;
 				$fn();
 			}
 
-			self::$httpHandler->withStatus(500);
-			self::$httpHandler->send();
+			self::$httpHandler->overwrite(self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath))->send();
 		}
 		else {
-			if(!empty($message = $exception->getMessage()) || self::$alwaysLog) {
+			if (self::$booboo->alwaysLog || self::$alwaysLog) {
+				$context = self::getContext(self::BOOBOO, self::$booboo->tag, $exception->getMessage(), $exception->getFile(), $exception->getLine());
 
-				$message = empty($message) ? self::$booboo->getData() : $message;
+				$logMsg = self::getExceptionMsg(self::$booboo->tag, $exception, self::$booboo->trace);
 
-				$context = self::getContext(self::BOOBOO, self::$booboo->getTag(), $message, $exception->getFile(), $exception->getLine());
-
-				if($format = self::$httpHandler->getStatusCode() >= 500) {
-					if(!empty(self::$logger)) {
-						self::$logger->critical(self::getExceptionMsg($exception, self::$booboo, $message), $context);
+				if (self::$booboo->httpHandler->getStatusCode() >= 500) {
+					if (!empty(self::$logger)) {
+						self::$logger->critical($logMsg, $context);
 					}
 					else {
-						error_log(self::getExceptionMsg($exception, self::$booboo, $message));
+						error_log($logMsg);
 					}
 				}
 				else {
-					if(!empty(self::$logger)) {
-						self::$logger->warning(self::getExceptionMsg($exception, self::$booboo, $message), $context);
+					if (!empty(self::$logger)) {
+						self::$logger->warning($logMsg, $context);
 					}
 					else {
-						error_log(self::getExceptionMsg($exception, self::$booboo, $message));
+						error_log($logMsg);
 					}
 				}
-				//error_log(self::$booboo->getTag().": {$exception->getMessage()} in {$exception->getFile()} in line {$exception->getLine()}.\nStack trace:\n{$exception->getTraceAsString()}");
 			}
 
-			if(!is_null(self::$lastAction)) {
+			if (!is_null(self::$lastAction)) {
 				$fn = self::$lastAction;
 				$fn();
 			}
 
-			self::$httpHandler->overwrite(self::$booboo->printErrorMessage(self::$httpHandler->getHeaderLine(ContentType::name()), self::$httpHandler->getStatusCode()))->send();
+			self::$booboo->httpHandler->overwrite(
+				self::getErrorTemplate(
+					self::$booboo->httpHandler,
+					self::$booboo->templates,
+					self::$booboo->displayMessage,
+					self::$booboo->templateData
+				)
+			)->send();
 		}
 	}
 
 	/**
 	 * Override the shut down function
 	 */
-	final public static function shutdownFunction() {
+	final public static function shutdownFunction()
+	{
 		$last_error = error_get_last();
 
-		if(isset($last_error) && ($last_error['type'] &
+		if (isset($last_error) && ($last_error['type'] &
 		(E_ERROR | E_PARSE | E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_COMPILE_WARNING | E_RECOVERABLE_ERROR))) {
 			self::errorHandler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
 		}
@@ -317,61 +392,35 @@ class BooBoo extends \Exception {
 	/**
 	 * Override the errorHandler
 	 */
-	final public static function errorHandler($severity, $message, $filepath, $line) {
+	final public static function errorHandler($severity, $message, $filepath, $line)
+	{
 		$is_error = (((E_ERROR | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR) & $severity) === $severity);
-
-		if ($is_error) {
-			$format = self::$httpHandler->getHeaderLine(ContentType::name());
-
-			switch($format) {
-				case ContentType::TEXT:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
-					break;
-				case ContentType::HTML:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['html']));
-					break;
-				case ContentType::JSON:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['json']));
-					break;
-				case ContentType::XML:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['xml']));
-					break;
-				default:
-					self::$httpHandler->overwrite(self::getContents(self::$defaultErrorPath['text']));
-					//self::$logger->log("Error: Can't find template in the format compatible for {$format}. Defaulting to plain text");
-					// Should eventually put this error in booboo's own log maybe?
-					error_log("BooBoo: Can't find template in the format compatible for {$format}. Defaulting to plain text");
-			}
-		}
 
 		$level = self::$levels[$severity];
 
 		$context = self::getContext(self::ERROR, $level, $message, $filepath, $line);
 
-		if(!in_array($severity, array_merge([E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], self::$ignore), true)) {
+		if (!in_array($severity, array_merge([E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], self::$ignore), true)) {
 
 			error_log("{$level}: {$message} in {$filepath} in line {$line}");
 
-			if(!empty(self::$logger)) {
+			if (!empty(self::$logger)) {
 				self::$logger->error("{$level}: {$message} in {$filepath} in line {$line}", $context);
 			}
 		}
 
-		if($is_error) {
-			if(!empty(self::$logger)) {
+		if ($is_error) {
+			if (!empty(self::$logger)) {
 				self::$logger->critical("{$level}: {$message} in {$filepath} in line {$line}", $context);
 			}
-			//else {
-			//error_log("{$level}: {$message} in {$filepath} in line {$line}");
-			//}
 
-			if(!is_null(self::$lastAction)) {
+			if (!is_null(self::$lastAction)) {
 				$fn = self::$lastAction;
 				$fn();
 			}
 
-			self::$httpHandler->withStatus(500)->send();
-			exit(1);
+			self::$httpHandler->overwrite(self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath))->withStatus(500)->send();
+			//exit(1);
 		}
 	}
 }
