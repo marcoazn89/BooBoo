@@ -132,17 +132,17 @@ throw (new DatabaseException('Data was not found. The table appears to be empty'
 	//Use the constant defined for the message displayed to the client
 	->displayMessage(DatabaseException::NOT_FOUND)
     	
-    	//Add context to your logs
-    	->logContext(['sessionID' => 12345])
+	//Add context to your logs
+	->logContext(['sessionID' => 12345])
     	
-    	//Pass data to your template
-    	->templateData(['actions' => 'Contact support'])
+	//Pass data to your template
+	->templateData(['actions' => 'Contact support'])
     	
-    	// Turn off stack traces
-    	->trace(false);
+	// Turn off stack traces
+	->trace(false);
     	
-    	// Tur off logging
-    	->noLog();
+	// Tur off logging
+	->noLog();
 ```
 
 Set limits on what you can support
