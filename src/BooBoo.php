@@ -159,6 +159,17 @@ abstract class BooBoo extends \Exception
 		return $this;
 	}
 
+	public function status($code)
+	{
+		if ($code < 400) {
+			throw new \InvalidArgumentException('Status code must be higuer or equal to 400');
+		}
+
+		self::$booboo->httpHandler->withStatus($code);
+
+		return $this;
+	}
+
 	public function response(ResponseInterface $response)
 	{
 		self::$booboo->httpHandler = self::$booboo->httpHandler->withStatus(
