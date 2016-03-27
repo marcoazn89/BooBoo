@@ -420,7 +420,7 @@ abstract class BooBoo extends \Exception
 			}
 
 			self::$httpHandler->overwrite(self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath))->withStatus(500)->send();
-			//exit(1);
+			exit(1);
 		}
 	}
 }
