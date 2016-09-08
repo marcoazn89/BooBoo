@@ -33,6 +33,8 @@ abstract class BooBoo extends \Exception
 
 	protected static $vars = [];
 
+	protected static $exit = true;
+
 	/**
 	 * Error levels
 	 * @var array
@@ -129,6 +131,11 @@ abstract class BooBoo extends \Exception
 		set_exception_handler(['Exception\BooBoo','exceptionHandler']);
 		set_error_handler(['Exception\BooBoo','errorHandler']);
 		register_shutdown_function(['Exception\BooBoo','shutdownFunction']);
+	}
+
+	public static function alwaysExit($value)
+	{
+		self::$exit = $value;
 	}
 
 	public function noLog()
@@ -327,6 +334,8 @@ abstract class BooBoo extends \Exception
 	 */
 	final public static function exceptionHandler($exception)
 	{
+		$response = null;
+
 		if (!$exception instanceof \Exception\BooBoo) {
 			$class = get_class($exception);
 			$msg = preg_replace("~[\r\n]~", ' ', $exception->getMessage());
@@ -345,7 +354,9 @@ abstract class BooBoo extends \Exception
 				$fn();
 			}
 
-			self::$httpHandler->overwrite(self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath))->send();
+			$response = self::$httpHandler->overwrite(
+				self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath)
+			);
 		}
 		else {
 			if (self::$booboo->alwaysLog || self::$alwaysLog) {
@@ -376,14 +387,29 @@ abstract class BooBoo extends \Exception
 				$fn();
 			}
 
-			self::$booboo->httpHandler->overwrite(
+			/*self::$booboo->httpHandler->overwrite(
 				self::getErrorTemplate(
 					self::$booboo->httpHandler,
 					self::$booboo->templates,
 					self::$booboo->displayMessage,
 					self::$booboo->templateData
 				)
-			)->send();
+			)->send();*/
+
+			$response = self::$booboo->httpHandler->overwrite(
+				self::getErrorTemplate(
+					self::$booboo->httpHandler,
+					self::$booboo->templates,
+					self::$booboo->displayMessage,
+					self::$booboo->templateData
+				)
+			);
+		}
+
+		if (self::$exit) {
+			$response->send();
+		} else {
+			return $response;
 		}
 	}
 
@@ -430,8 +456,15 @@ abstract class BooBoo extends \Exception
 				$fn();
 			}
 
-			self::$httpHandler->overwrite(self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath))->withStatus(500)->send();
-			exit(1);
+			$response = self::$httpHandler->overwrite(self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath))->withStatus(500);
+			//exit(1);
+			return $response;
+			if (self::$exit) {
+				$response->send();
+				exit(1);
+			} else {
+				return $response;
+			}
 		}
 	}
 }
