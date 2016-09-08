@@ -456,15 +456,7 @@ abstract class BooBoo extends \Exception
 				$fn();
 			}
 
-			$response = self::$httpHandler->overwrite(self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath))->withStatus(500);
-			//exit(1);
-			return $response;
-			if (self::$exit) {
-				$response->send();
-				exit(1);
-			} else {
-				return $response;
-			}
+			self::$httpHandler->overwrite(self::getErrorTemplate(self::$httpHandler, self::$defaultErrorPath))->withStatus(500)->send();
 		}
 	}
 }
