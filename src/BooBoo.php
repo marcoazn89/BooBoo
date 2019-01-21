@@ -224,7 +224,7 @@ abstract class BooBoo extends \Exception
 	 * @param  mixed $data [Data to be used in the file. This may get deprecated]
 	 * @return file
 	 */
-	protected static function getContents($content, $response, $message, $data)
+	public static function getContents($content, $response, $message, $data)
 	{
 		ob_start();
 
@@ -240,7 +240,7 @@ abstract class BooBoo extends \Exception
 		return $buffer;
 	}
 
-	protected static function getErrorTemplate($response, $templates, $message = null, $data = null)
+	public static function getErrorTemplate($response, $templates, $message = null, $data = null)
 	{
 		switch ($response->getHeaderLine(ContentType::name())) {
 			case ContentType::TEXT:
@@ -261,7 +261,7 @@ abstract class BooBoo extends \Exception
 		}
 	}
 
-	protected static function getExceptionMsg($tag, $exception, $trace = false)
+	public static function getExceptionMsg($tag, $exception, $trace = false)
 	{
 		$log = "";
 
@@ -274,7 +274,7 @@ abstract class BooBoo extends \Exception
 		return $log;
 	}
 
-	protected static function getContext($type, $tag = null, $message, $file = null, $line = null, $code = null)
+	public static function getContext($type, $tag = null, $message, $file = null, $line = null, $code = null)
 	{
 		$error = [
 			'error' => [
